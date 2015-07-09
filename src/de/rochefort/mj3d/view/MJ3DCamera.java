@@ -54,7 +54,6 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 
 		MJ3DVector[] points = map.getPointsArray();
 		int[][] triadPoints = map.getTriadPointsArray();
-		int[] triadColors = map.getTriadColorsArray();
 		int[] pointColors = map.getPointColorsArray();
 		clearCacheArrays();
 		zBuffer.setBackgroundColor(map.getBackgroundColor(this));
