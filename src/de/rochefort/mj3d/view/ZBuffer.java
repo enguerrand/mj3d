@@ -23,33 +23,6 @@ public class ZBuffer {
 		bufferedImage.getRaster().setDataElements(0, 0, width, height, dataElements);
 		return bufferedImage;
 	}
-	
-//	public void fillTriad(Polygon polygon, int color, int bgColor, float[] distance, float maxDistance, boolean fogEffect){
-//		int rgb;
-//		if(fogEffect){
-//			rgb = getColorWithFogEffect(color, bgColor, distance[0], maxDistance);
-//		}
-//		else {
-//			rgb = color;
-//		}
-//		Rectangle rect = polygon.getBounds();
-//		int minX = Math.max(0,(int)rect.getMinX());
-//		int minY = Math.max(0,(int)rect.getMinY());
-//		int maxX = Math.min(width-1,(int)rect.getMaxX());
-//		int maxY = Math.min(height-1,(int)rect.getMaxY());
-//		for(int x=minX ; x<=maxX; x++){
-//			for(int y= minY; y<=maxY; y++){
-//				int index = y*(width)+x;
-//				if (distanceArray[index] <= distance[0]){
-//					continue;
-//				}
-//				if(polygon.contains(x, y)){
-//					distanceArray[index]=distance[0];
-//					dataElements[index] = rgb;
-//				}
-//			}
-//		}
-//	}
 
 	/**
 	 * Based on http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
@@ -62,13 +35,6 @@ public class ZBuffer {
 	 * @param fogEffect
 	 */
 	public void fillTriad(int[]x, int[]y, int[] pointColors, int bgColor, float[] distance, float maxDistance, boolean fogEffect, boolean wireframe){
-//		PerformanceTimer.stopInterimTime("calling to filling Triad");
-//		for(int pc=0; pc<pointColors.length; pc++){
-//			Color dummy = new Color(pointColors[pc]);
-//			if(dummy.getGreen()==255)
-//				System.out.println("rgb: "+dummy.getRed()+" "+dummy.getGreen()+" "+dummy.getBlue());
-//		}
-		int rgb;
 		int indexTop = Integer.MIN_VALUE;
 		int indexBottom = Integer.MIN_VALUE;
 		int indexMid = Integer.MIN_VALUE;
@@ -187,8 +153,6 @@ public class ZBuffer {
 				X4++;
 			float dist4 = (distance[indexTop] + ratio * (distance[indexBottom] - distance[indexTop]));
 			int color4 = ColorBlender.blendRGB(pointColors[indexTop], pointColors[indexBottom], ratio);
-//			dataElements[getDataElementsIndex(X4, Y4)] = 0;
-//			distanceArray[getDataElementsIndex(X4, Y4)] = 0;
 			if(X4>x[indexMid]){
 				fillBottomFlatTriangle(x[indexTop], x[indexMid], X4, y[indexTop], y[indexMid], Y4, pointColors[indexTop], pointColors[indexMid], color4, bgColor, distance[indexTop], distance[indexMid], dist4, maxDistance, wireframe);
 				fillTopFlatTriangle(x[indexMid], X4, x[indexBottom], y[indexMid], Y4, y[indexBottom], pointColors[indexMid], color4, pointColors[indexBottom], bgColor, distance[indexMid], dist4, distance[indexBottom], maxDistance, wireframe);
@@ -198,14 +162,9 @@ public class ZBuffer {
 				fillTopFlatTriangle(X4, x[indexMid], x[indexBottom], Y4, y[indexMid], y[indexBottom], color4, pointColors[indexMid], pointColors[indexBottom], bgColor, dist4, distance[indexMid], distance[indexBottom], maxDistance, wireframe);
 			}
 		}
-//		PerformanceTimer.stopInterimTime("filling Triad");
 	}
 
 	private void fillBottomFlatTriangle(int x1, int x2, int x3, int y1, int y2, int y3, int color1, int color2, int color3, int bgColor, float distance1, float distance2, float distance3, float maxDistance, boolean wireframe){
-//		if(y1==y2 || y3 == y1){
-//		System.out.println("gleiche y werte: "+y1+" "+y2+" "+y3);
-//			return;
-//		}
 		float ratio1 = 1f /(float)(y2 - y1);
 		float ratio2 = 1f /(float)(y3 - y1);
 		
@@ -227,14 +186,6 @@ public class ZBuffer {
 			if(scanlineY>=0){
 				int c1=ColorBlender.blendRGB(color1, color2, color1Slope);
 				int c2=ColorBlender.blendRGB(color1, color3, color2Slope);
-//				if(scanlineY ==y2){
-//					System.out.println("Scanline in bottom flat color2 (left): "+new Color(color2));
-//					System.out.println("Scanline in bottom flat color3 (right): "+new Color(color3));
-//					System.out.println("Scanline in bottom flat c1: "+new Color(c1));
-//					System.out.println("Scanline in bottom flat c2: "+new Color(c2));
-//					System.out.println("Scanline in bottom flat c1 input: "+new Color(color1)+" -> "+new Color(color2)+" with slope "+color1Slope);
-//					System.out.println("Scanline in bottom flat c2 input: "+new Color(color1)+" -> "+new Color(color3)+" with slope "+color2Slope);
-//				}
 				drawHorizontalLine((int)curx1, (int)curx2, scanlineY, c1, c2, bgColor, dist1, dist2, maxDistance, wireframe);
 			}
 			curx1 += invslope1;
@@ -246,10 +197,6 @@ public class ZBuffer {
 		}
 	 }
 	private void fillTopFlatTriangle(int x1, int x2, int x3, int y1, int y2, int y3, int color1, int color2, int color3, int bgColor, float distance1, float distance2, float distance3, float maxDistance, boolean wireframe){
-//		if(y3==y1 || y3 == y2){
-//			System.out.println("gleiche y werte: "+y1+" "+y2+" "+y3);
-//			return;
-//		}
 		float ratio1 = 1f / (float)(y3 - y1);
 		float ratio2 = 1f / (float)(y3 - y2);
 		
@@ -268,7 +215,6 @@ public class ZBuffer {
 		y1=Math.max(0, y1);
 		float dist1 = distance3;
 		float dist2 = distance3;
-//		y3=Math.min(y3, height-1);
 		for (int scanlineY = y3-1; scanlineY >= y1; scanlineY--){
 			curx1 -= invslope1;
 			curx2 -= invslope2;
@@ -280,14 +226,6 @@ public class ZBuffer {
 				continue;
 			int c1=ColorBlender.blendRGB(color1, color3, color1Slope);
 			int c2=ColorBlender.blendRGB(color2, color3, color2Slope);
-//			if(scanlineY ==y1){
-//				System.out.println("Scanline in top    flat color1 (color left): "+color1);
-//				System.out.println("Scanline in top    flat color2 (color right): "+color2);
-//				System.out.println("Scanline in top    flat c1: "+c1);
-//				System.out.println("Scanline in top    flat c2: "+c2);
-//				System.out.println("Scanline in top    flat c1 input: "+color1+" -> "+color3+" with slope "+color1Slope);
-//				System.out.println("Scanline in top    flat c2 input: "+color2+" -> "+color3+" with slope "+color2Slope);
-//			}
 			drawHorizontalLine((int)curx1, (int)curx2, scanlineY, c1, c2, bgColor, dist1, dist2, maxDistance, wireframe);
 		}
 	}
@@ -309,22 +247,16 @@ public class ZBuffer {
 		int xmax;
 		float dmin;
 		float dmax;
-		int cMin;
-		int cMax;
 		if(x1<x2){
 			xmin=Math.max(0,x1);
 			xmax=Math.min(width-1, x2);
 			dmin=distance1;
 			dmax=distance2;
-			cMin = color1;
-			cMax = color2;
 		} else if(x2<x1){
 			xmin=Math.max(0,x2);;
 			xmax=Math.min(width-1, x1);
 			dmin=distance2;
 			dmax=distance1;
-			cMin = color2;
-			cMax = color1;
 		}
 		else{
 			return;
@@ -337,8 +269,6 @@ public class ZBuffer {
 		float distance = dmin;
 		for(int x = xmin; x <= xmax; x++){
 			int index = getDataElementsIndex(x, y);
-//			if(index > dataElements.length-1)
-//				continue;
 			if(distanceArray[index]>distance){
 				distanceArray[index]=distance;
 				int color = black;
@@ -353,9 +283,6 @@ public class ZBuffer {
 	}
 	
 	private int getDataElementsIndex(int x, int y){
-//		if(y==0 || x== 0){
-//			System.out.println("x/y="+x+" "+y);
-//		}
 		return x+y*(width);
 	}
 
