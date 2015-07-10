@@ -10,6 +10,7 @@ import java.util.List;
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.objects.MJ3DObject;
 import de.rochefort.mj3d.objects.MJ3DObjectCompound;
+import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
@@ -22,15 +23,17 @@ class MJ3DMapImpl implements MJ3DMap {
 	private final float minZ;
 	private final float maxZ;
 	private final boolean foggy;
-	private final MJ3DVector[] pointsArray;
+	private final boolean wireframe;
+	private final MJ3DPoint3D[] pointsArray;
 	private final int[][] triadPointsArray;
 	private final int[] triadColorsArray;
 	private final int[] pointColorsArray;
 	
-	MJ3DMapImpl(Collection<MJ3DObject> mj3dObjects, int backgroundColor, boolean foggy){
+	MJ3DMapImpl(Collection<MJ3DObject> mj3dObjects, int backgroundColor, boolean foggy, boolean wireframe){
 		this.bg = backgroundColor;
 		this.foggy = foggy;
-		List<MJ3DVector> pointsList = new ArrayList<MJ3DVector>();
+		this.wireframe = wireframe;
+		List<MJ3DPoint3D> pointsList = new ArrayList<MJ3DPoint3D>();
 		List<MJ3DTriad> triadList = new ArrayList<MJ3DTriad>();
 		LinkedList<MJ3DObjectCompound> objectsCompounds = new LinkedList<MJ3DObjectCompound>();
 		for(MJ3DObject obj : mj3dObjects){
@@ -47,7 +50,7 @@ class MJ3DMapImpl implements MJ3DMap {
 		}
 		
 
-		pointsArray = new MJ3DVector[pointsList.size()];
+		pointsArray = new MJ3DPoint3D[pointsList.size()];
 		pointColorsArray = new int[pointsList.size()];
 		triadPointsArray = new int[triadList.size()][3];  // To store the indices the respective vertices in the pointsArray
 		triadColorsArray = new int[triadList.size()];
@@ -95,7 +98,7 @@ class MJ3DMapImpl implements MJ3DMap {
 //				pointsBlueArray[pointIndex]+=triadList.get(triadIndex).getColor().getBlue();
 //				pointsTriadCountArray[pointIndex]++;
 
-				MJ3DVector currentPoint = triadList.get(triadIndex).getPoints()[vertice];
+				MJ3DPoint3D currentPoint = triadList.get(triadIndex).getPoints()[vertice];
 				int pointIndex = currentPoint.getIndex();
 				triadPointsArray[triadIndex][vertice]=pointIndex;
 				pointsRedArray[pointIndex]+=triadList.get(triadIndex).getColor().getRed();
@@ -161,6 +164,11 @@ class MJ3DMapImpl implements MJ3DMap {
 	public boolean isFoggy() {
 		return foggy;
 	}
+	
+	@Override
+	public boolean isWireframe() {
+		return wireframe;
+	}
 
 	@Override
 	public int getPointsCount() {
@@ -173,7 +181,7 @@ class MJ3DMapImpl implements MJ3DMap {
 	}
 
 	@Override
-	public MJ3DVector[] getPointsArray() {
+	public MJ3DPoint3D[] getPointsArray() {
 		return pointsArray;
 	}
 

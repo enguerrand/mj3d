@@ -2,21 +2,30 @@ package de.rochefort.mj3d.objects.terrains;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import de.rochefort.mj3d.exceptions.IncompatibleMergeException;
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.math.randomness.RandomNumberGenerator;
+import de.rochefort.mj3d.objects.Mergeable;
+import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.view.ColorBlender;
 
-public class MJ3DDiamondSquareTerrain extends MJ3DTerrain {
+public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 
 	private final Color colorShade;
 	private final int seaColorShallow;
 	private final int seaColorDeep;
 	private List<MJ3DTriad> visibleTriads = new ArrayList<MJ3DTriad>();
-	private List<MJ3DVector> points = new ArrayList<MJ3DVector>();
-	private List<MJ3DVector> edgePoints = new ArrayList<MJ3DVector>();
+	private List<MJ3DPoint3D> points = new ArrayList<MJ3DPoint3D>();
+//	private List<MJ3DVector> edgePoints = new ArrayList<MJ3DVector>();
+	private Map<EdgeType, List<MJ3DPoint3D>> edgePoints = new HashMap<EdgeType, List<MJ3DPoint3D>>();
 	private MJ3DVector vectorOfLight = MJ3DVector.Y_UNIT_VECTOR;
 	private float[][] heights;
 	private final float roughness;
@@ -37,6 +46,9 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain {
 		this.roughness = roughness;
 		this.width = width;
 		this.steps = steps;
+		for(EdgeType e : EdgeType.values()){
+			edgePoints.put(e, new ArrayList<MJ3DPoint3D>());
+		}
 	}
 	
 	private MJ3DDiamondSquareTerrain(float roughness, float width, int steps, float[][] heights, float seaLevel, float initialAmplitude, Color shadeColor, int seaColorDeep, int seaColorShallow, float ambientLight){
@@ -58,16 +70,10 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain {
 		}
 	}
 
-	
-	public void preSeed(int row, int column, float height){
-		this.heights[row][column] = height;
-	}
-	
 	public void create(boolean wrappable){
 		createDiamondSquareTerrain(wrappable);
 		smoothOutSpikes();
 		createTriads();
-		
 	}
 	
 	
@@ -91,22 +97,29 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain {
 		}
 		
 		float deltaX = width / (heights.length - 1);
-		MJ3DVector[][] tmpPoints = new MJ3DVector[heights.length][heights.length];
+		MJ3DPoint3D[][] tmpPoints = new MJ3DPoint3D[heights.length][heights.length];
 		for (int r = 0; r < heights.length; r++) {
 			for (int c = 0; c < heights.length; c++) {
-				tmpPoints[r][c] = new MJ3DVector(deltaX * r, deltaX * c, heights[r][c]);
+				tmpPoints[r][c] = new MJ3DPoint3D(deltaX * r, deltaX * c, heights[r][c]);
+				tmpPoints[r][c].setTerrainPointPosition(this, r, c);
 				this.points.add(tmpPoints[r][c]);
-				if(r==0||c==0||r==heights.length-1||c==heights.length-1){
-					edgePoints.add(tmpPoints[r][c]);
-				}
+				
+				if(r==0)
+					edgePoints.get(EdgeType.NORTH).add(tmpPoints[r][c]);
+				if(r==heights.length-1)
+					edgePoints.get(EdgeType.SOUTH).add(tmpPoints[r][c]);
+				if(c==0)
+					edgePoints.get(EdgeType.WEST).add(tmpPoints[r][c]);
+				if(c==heights.length-1)
+					edgePoints.get(EdgeType.EAST).add(tmpPoints[r][c]);
 			}
 		}		
 
 		float illuminationFactor = (1f - ambientLight) *0.5f;
 		for (int r = 0; r < heights.length - 1; r++) {
 			for (int c = 0; c < heights.length - 1; c++) {
-				MJ3DVector[] points1 = new MJ3DVector[3];
-				MJ3DVector[] points2 = new MJ3DVector[3];
+				MJ3DPoint3D[] points1 = new MJ3DPoint3D[3];
+				MJ3DPoint3D[] points2 = new MJ3DPoint3D[3];
 				points1[0] = tmpPoints[r][c]; 		// p1
 				points1[1] = tmpPoints[r][c+1]; 	// p2
 				points1[2] = tmpPoints[r+1][c]; 	// p3
@@ -203,10 +216,14 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain {
 		int squareEdgeLength = totalRowCount - 1;
 		int halfSquareEdgeLength = (int) (0.5 * squareEdgeLength);
 		float amplitude = initialAmplitude;
-		heights[0][0] = 0;
-		heights[0][squareEdgeLength] = 0;
-		heights[totalRowCount - 1][0] = 0;
-		heights[totalRowCount - 1][squareEdgeLength] = 0;
+		if(heights[0][0] == Float.MAX_VALUE)
+			heights[0][0] = 0;
+		if(heights[0][squareEdgeLength] == Float.MAX_VALUE)
+			heights[0][squareEdgeLength] = 0;
+		if(heights[totalRowCount - 1][0] == Float.MAX_VALUE)
+			heights[totalRowCount - 1][0] = 0;
+		if(heights[totalRowCount - 1][squareEdgeLength] == Float.MAX_VALUE)
+			heights[totalRowCount - 1][squareEdgeLength] = 0;
 
 		for (int i = 0; i < steps; i++) {
 			// Diamond Step
@@ -292,14 +309,15 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain {
 	}
 	
 	public void translate(MJ3DVector translationVector){
-		List<MJ3DVector> points = getPoints();
-		for(MJ3DVector p : points){
+		List<MJ3DPoint3D> points = getPoints();
+		for(MJ3DPoint3D p : points){
 			p.translate(translationVector);
 		}
 	}
 
-	private List<MJ3DVector> getEdgePoints() {
-		return edgePoints;
+	@Override
+	public List<MJ3DPoint3D> getEdgePoints(EdgeType edgeType) {
+		return edgePoints.get(edgeType);
 	}
 
 	private class Diamond {
@@ -333,18 +351,52 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain {
 		}
 	}
 	
-	public void mergeEdges(MJ3DDiamondSquareTerrain destinationTerrain){
-		float tolerance = 0.5f * width / (heights.length - 1);
-		for(MJ3DVector sourcePoint : getEdgePoints()){
-			for(MJ3DVector destinationPoint : destinationTerrain.getEdgePoints()){
-				sourcePoint.merge(destinationPoint, tolerance);
-			}
-		}
-//		System.out.println("Points merged: "+pointsMerged);
+
+	public void preSeed(int row, int column, float height){
+		this.heights[row][column] = height;
 	}
+	
+	@Override
+	public void merge(Mergeable mergeable, EdgeType ownEdge, EdgeType otherEdge){
+		List<MJ3DPoint3D> ownEdgePoints = getEdgePoints(ownEdge);
+		List<MJ3DPoint3D> otherEdgePoints = mergeable.getEdgePoints(otherEdge);
+		if(ownEdgePoints.size() != otherEdgePoints.size()){
+			throw new IncompatibleMergeException("Own edge points count "+ownEdgePoints.size()+" does not match other edge points count "+otherEdgePoints.size());
+		}
+		Comparator<MJ3DVector> comp = MJ3DVector.getXyzComparator();
+		Collections.sort(ownEdgePoints, comp);
+		Collections.sort(otherEdgePoints, comp);
+		for(int i=0; i<ownEdgePoints.size(); i++){
+			replace(ownEdgePoints.get(i), otherEdgePoints.get(i));
+		}
+	}
+	
+	public void replace(MJ3DPoint3D point, MJ3DPoint3D replacement){
+		int r = point.getTerrainPointRow(this);
+		int c = point.getTerrainPointCol(this);
+		replacement.setTerrainPointPosition(this, r, c);
+		points.remove(point);
+		points.add(replacement);
+		heights[r][c]=replacement.getZ();
+		List<MJ3DTriad> triads = new ArrayList<MJ3DTriad>();
+		triads.addAll(point.getTriads());
+		for(MJ3DTriad t : triads){
+			t.replacePoint(point, replacement);
+		}
+	}
+	
+//	public void mergeEdges(MJ3DDiamondSquareTerrain destinationTerrain){
+//		float tolerance = 0.5f * width / (heights.length - 1);
+//		for(MJ3DVector sourcePoint : getEdgePoints()){
+//			for(MJ3DVector destinationPoint : destinationTerrain.getEdgePoints()){
+//				sourcePoint.merge(destinationPoint, tolerance);
+//			}
+//		}
+////		System.out.println("Points merged: "+pointsMerged);
+//	}
 
 	@Override
-	public List<MJ3DVector> getPoints() {
+	public List<MJ3DPoint3D> getPoints() {
 		return this.points;
 	}
 

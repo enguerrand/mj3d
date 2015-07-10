@@ -7,25 +7,28 @@ import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.objects.MJ3DObject;
 
 public class MJ3DTriad implements MJ3DObject {
-	private MJ3DVector [] points;
+	private MJ3DPoint3D [] points;
 	private MJ3DVector normal;
 	private Color color;
 
-	public MJ3DTriad(MJ3DVector[] points) {
+	public MJ3DTriad(MJ3DPoint3D[] points) {
 		this.points = points;
+		registerWithPoints();
 //		System.out.println("New Triad: "+this);
 	}
-	public MJ3DTriad(MJ3DVector[] points, Color color) {
+	public MJ3DTriad(MJ3DPoint3D[] points, Color color) {
 		this(points);
 		this.color = color;
 	}
 
-	public MJ3DVector[] getPoints() {
+	public MJ3DPoint3D[] getPoints() {
 		return points;
 	}
 
-	public void setPoints(MJ3DVector[] points) {
+	public void setPoints(MJ3DPoint3D[] points) {
+		unRegisterWithPoints();
 		this.points = points;
+		registerWithPoints();
 	}
 
 	public Color getColor() {
@@ -65,5 +68,27 @@ public class MJ3DTriad implements MJ3DObject {
 
 	public MJ3DVector getNormal() {
 		return normal;
+	}
+	
+	public void replacePoint(MJ3DPoint3D point, MJ3DPoint3D replacement){
+		for(int i=0; i< this.points.length; i++){
+			if(this.points[i].equals(point)){
+				this.points[i].removeTriad(this);
+				this.points[i]=replacement;
+				this.points[i].addTriad(this);
+			};
+		}
+	}
+	
+	private void registerWithPoints(){
+		for(MJ3DPoint3D v : this.points){
+			v.addTriad(this);
+		}
+	}
+	
+	private void unRegisterWithPoints(){
+		for(MJ3DPoint3D v : this.points){
+			v.removeTriad(this);
+		}
 	}
 }

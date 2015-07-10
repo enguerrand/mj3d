@@ -1,6 +1,6 @@
 package de.rochefort.mj3d.objects.maps;
 
-import de.rochefort.mj3d.math.MJ3DVector;
+import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 public interface MJ3DMap {
@@ -13,8 +13,9 @@ public interface MJ3DMap {
 	public float getMinZ();
 	public float getMaxZ();
 	public boolean isFoggy();
+	public boolean isWireframe();
 	public int getTriadCount();
-	public MJ3DVector[] getPointsArray();
+	public MJ3DPoint3D[] getPointsArray();
 	public int[][] getTriadPointsArray();
 	public int[] getPointColorsArray();
 }

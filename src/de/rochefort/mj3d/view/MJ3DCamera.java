@@ -102,7 +102,7 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 //					if(dummy.getGreen()==255)
 //						System.out.println("rgb: "+dummy.getRed()+" "+dummy.getGreen()+" "+dummy.getBlue());
 //				}
-				zBuffer.fillTriad(x, y, c, map.getBackgroundColor(this), distances, maxTriadDistance, map.isFoggy());
+				zBuffer.fillTriad(x, y, c, map.getBackgroundColor(this), distances, maxTriadDistance, map.isFoggy(), map.isWireframe());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

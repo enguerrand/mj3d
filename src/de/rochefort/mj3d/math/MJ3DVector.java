@@ -2,24 +2,25 @@ package de.rochefort.mj3d.math;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 
 import de.rochefort.mj3d.objects.MJ3DObject;
+import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 
 public class MJ3DVector implements MJ3DObject {
 	public enum UnitVectorType {X, Y, Z};
 	public static final MJ3DVector X_UNIT_VECTOR = new MJ3DVector(UnitVectorType.X);
 	public static final MJ3DVector Y_UNIT_VECTOR = new MJ3DVector(UnitVectorType.Y);
 	public static final MJ3DVector Z_UNIT_VECTOR = new MJ3DVector(UnitVectorType.Z);
-	private int index;
-	private float x=0;
-	private float y=0;
-	private float z=0;
-	public MJ3DVector() {
-		this(-1);
+	protected float x=0;
+	protected float y=0;
+	protected float z=0;
+
+	public MJ3DVector(){
 	}
-	public MJ3DVector(int index) {
-		this.index = index;
-	}
+	
 	public MJ3DVector(UnitVectorType type) {
 		this();
 		switch (type){
@@ -36,7 +37,6 @@ public class MJ3DVector implements MJ3DObject {
 	}
 	
 	public MJ3DVector(float x, float y, float z) {
-		this();
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -45,14 +45,6 @@ public class MJ3DVector implements MJ3DObject {
 	public MJ3DVector rotate(MJ3DMatrix rotationMatrix){
 		return rotationMatrix.multiply(this);
 	}
-	
-	public void setIndex(int index) {
-		this.index = index;
-	}
-	
-	public int getIndex() {
-		return index;
-	};
 	
 	public float getX() {
 		return x;
@@ -137,5 +129,20 @@ public class MJ3DVector implements MJ3DObject {
 	}
 	public static float dotProduct (MJ3DVector vect1, MJ3DVector vect2) {
 		return vect1.x * vect2.x + vect1.y * vect2.y + vect1.z * vect2.z;
+	}
+	
+	public static Comparator<MJ3DVector> getXyzComparator(){
+		return new Comparator<MJ3DVector>() {
+			@Override
+			public int compare(MJ3DVector v1, MJ3DVector v2) {
+				if(v1==null && v2==null) return 0;
+				if(v1!=null && v2==null) return -1;
+				if(v1==null && v2!=null) return 1;
+				if(v1.x==v2.x && v1.y==v2.y && v1.z==v2.z) return 0;
+				if(v1.x==v2.x && v1.y==v2.y) return Float.compare(v1.z, v2.z);
+				if(v1.x==v2.x) return Float.compare(v1.y, v2.y);
+				return Float.compare(v1.x, v2.x);
+			}
+		};
 	}
 }

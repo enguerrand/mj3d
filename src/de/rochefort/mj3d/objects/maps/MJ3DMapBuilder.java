@@ -13,6 +13,7 @@ public class MJ3DMapBuilder {
 	private final AtomicBoolean finalized = new AtomicBoolean(false);
 	private final List<MJ3DObject> mj3dObjects = new LinkedList<MJ3DObject>();
 	private boolean foggy = true;
+	private boolean wireframe = false;
 	private Color backgroundColor = Color.BLACK;
 	
 	private MJ3DMapBuilder(){
@@ -25,6 +26,11 @@ public class MJ3DMapBuilder {
 	
 	public MJ3DMapBuilder setFoggy(boolean foggy){
 		this.foggy = foggy;
+		return this;
+	}
+	
+	public MJ3DMapBuilder setWireframe(boolean wireframe){
+		this.wireframe = wireframe;
 		return this;
 	}
 	
@@ -47,6 +53,6 @@ public class MJ3DMapBuilder {
 		if(!finalized.compareAndSet(false, true)){
 			throw new IllegalStateException("MJ3DMapBuilder: build() Method may only be called once!");
 		}
-		return new MJ3DMapImpl(mj3dObjects, backgroundColor.getRGB(), foggy);
+		return new MJ3DMapImpl(mj3dObjects, backgroundColor.getRGB(), foggy, wireframe);
 	}
 }
