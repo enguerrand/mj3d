@@ -27,31 +27,27 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain {
 	private float ambientLight;
 	private float initialAmplitude;
 
-	private MJ3DDiamondSquareTerrain(float roughness, float width, int steps, float[][] heights, float seaLevel, float initialAmplitude, Color shadeColor, int seaColorDeep, int seaColorShallow, float ambientLight){
-		this.roughness = roughness;
-		this.width = width;
-		this.seaLevel = seaLevel;
-		this.colorShade = shadeColor;
-		this.seaColorShallow = seaColorShallow;
-		this.seaColorDeep = seaColorDeep;
-		this.heights = heights;
-		this.initialAmplitude = initialAmplitude;
-		this.steps = steps;
-		this.ambientLight = ambientLight;
-		createTriads();
-	}
-	
-	public MJ3DDiamondSquareTerrain(long seed, float width, int steps, float roughness, float initialAmplitude, Color shadeColor, float seaLevel, int seaColorDeep,  int seaColorShallow, float ambientLight) {
+	private MJ3DDiamondSquareTerrain(float width, int steps, float roughness, Color shadeColor, float seaLevel, int seaColorDeep, int seaColorShallow, float ambientLight) {
 		super();
 		this.seaLevel = seaLevel;
 		this.colorShade = shadeColor;
 		this.seaColorShallow = seaColorShallow;
 		this.seaColorDeep = seaColorDeep;
 		this.ambientLight = ambientLight;
-		randGen = new RandomNumberGenerator(seed);
 		this.roughness = roughness;
 		this.width = width;
 		this.steps = steps;
+	}
+	
+	private MJ3DDiamondSquareTerrain(float roughness, float width, int steps, float[][] heights, float seaLevel, float initialAmplitude, Color shadeColor, int seaColorDeep, int seaColorShallow, float ambientLight){
+		this(width, steps, roughness, shadeColor, seaLevel, seaColorDeep, seaColorShallow, ambientLight);
+		this.heights = heights;
+		createTriads();
+	}
+	
+	public MJ3DDiamondSquareTerrain(long seed, float width, int steps, float roughness, float initialAmplitude, Color shadeColor, float seaLevel, int seaColorDeep,  int seaColorShallow, float ambientLight) {
+		this(width, steps, roughness, shadeColor, seaLevel, seaColorDeep, seaColorShallow, ambientLight);
+		randGen = new RandomNumberGenerator(seed);
 		this.initialAmplitude = initialAmplitude;
 		int rows = (int) Math.pow(2, steps) + 1;
 		heights = new float[rows][rows];
@@ -61,6 +57,7 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain {
 			}
 		}
 	}
+
 	
 	public void preSeed(int row, int column, float height){
 		this.heights[row][column] = height;
@@ -338,12 +335,9 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain {
 	
 	public void mergeEdges(MJ3DDiamondSquareTerrain destinationTerrain){
 		float tolerance = 0.5f * width / (heights.length - 1);
-		int pointsMerged=0;
 		for(MJ3DVector sourcePoint : getEdgePoints()){
 			for(MJ3DVector destinationPoint : destinationTerrain.getEdgePoints()){
-				if(sourcePoint.merge(destinationPoint, tolerance)){
-					pointsMerged++;
-				}
+				sourcePoint.merge(destinationPoint, tolerance);
 			}
 		}
 //		System.out.println("Points merged: "+pointsMerged);
