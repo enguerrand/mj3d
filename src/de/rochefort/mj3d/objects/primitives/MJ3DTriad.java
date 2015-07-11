@@ -59,6 +59,22 @@ public class MJ3DTriad implements MJ3DObject {
 		return points[0].getZ();
 	}
 	
+	public float getMaxZ(){
+		float result = Float.MIN_VALUE;
+		for(int i=0; i<this.points.length; i++){
+			result = Math.max(result, points[i].getZ());
+		}
+		return result;
+	}
+	
+	public float getMinZ(){
+		float result = Float.MIN_VALUE;
+		for(int i=0; i<this.points.length; i++){
+			result = Math.min(result, points[i].getZ());
+		}
+		return result;
+	}
+	
 	public void updateSurfaceNormal(){
 		MJ3DVector vect1 = new MJ3DVector(points[1].getX()-points[0].getX(), points[1].getY()-points[0].getY(), points[1].getZ()-points[0].getZ());
 		MJ3DVector vect2 = new MJ3DVector(points[2].getX()-points[0].getX(), points[2].getY()-points[0].getY(), points[2].getZ()-points[0].getZ());
