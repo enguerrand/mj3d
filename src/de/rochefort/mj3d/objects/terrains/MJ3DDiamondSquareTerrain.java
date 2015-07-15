@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -159,7 +158,7 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 
 	private void applySeaColor(float maxZ, MJ3DTriad triad) {
 		MJ3DPoint3D[] pts = triad.getPoints();
-		float midDepth = (pts[0].getZ() + pts[1].getZ() + pts[2].getZ()) / 3f  -  seaLevel;
+		float midDepth = (pts[0].getOriginalZ() + pts[1].getOriginalZ() + pts[2].getOriginalZ()) / 3f  -  seaLevel;
 		float depthRatio = midDepth / (maxZ - seaLevel); 
 		triad.setColor(new Color(ColorBlender.blendRGB(seaColorShallow, seaColorDeep, depthRatio)));
 	}
@@ -186,7 +185,7 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	}
 	
 	private void createSeaLevel() {
-		for (MJ3DVector pt : this.points){
+		for (MJ3DPoint3D pt : this.points){
 			if(pt.getZ() > seaLevel){
 				pt.setZ(seaLevel);
 			}
@@ -366,17 +365,17 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 		replacement.setTerrainPointPosition(this, r, c);
 		points.remove(pointToReplace);
 		points.add(replacement);
-		heights[r][c]=replacement.getZ();
+		heights[r][c]=Math.min(replacement.getZ(), this.seaLevel);
 		List<MJ3DTriad> triads = new ArrayList<MJ3DTriad>();
 		triads.addAll(pointToReplace.getTriads());
 		for(MJ3DTriad t : triads){
 			t.replacePoint(pointToReplace, replacement);
-//			if(t.getMinZ() >= seaLevel){
-//				applySeaColor(maxZ, t);
-//			}
-//			else{
-//				t.setColor(ColorBlender.scaleColor(colorShade, ambientLight - (1f - ambientLight) *0.5f * (MJ3DVector.dotProduct(vectorOfLight, t.getNormal())-1)));
-//			}
+			if(t.getMinOriginalZ() >= seaLevel){
+				applySeaColor(maxZ, t);
+			}
+			else{
+				t.setColor(ColorBlender.scaleColor(colorShade, ambientLight - (1f - ambientLight) *0.5f * (MJ3DVector.dotProduct(vectorOfLight, t.getNormal())-1)));
+			}
 		}
 		for(EdgeType e : EdgeType.values()){
 			List<MJ3DPoint3D> ep = getEdgePoints(e);
@@ -390,11 +389,11 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	private void mergeAndSmooth(MJ3DPoint3D ownPoint, MJ3DPoint3D otherPoint, Mergeable otherMergeable){
 		if(otherMergeable instanceof MJ3DDiamondSquareTerrain){
 			MJ3DDiamondSquareTerrain otherTerrain = (MJ3DDiamondSquareTerrain) otherMergeable;
-			float amplitude = getAmplitude(this.steps-1);
+			float amplitude = getAmplitude(this.steps);
 			float baseHeight = 0.5f * (findAdjacentInnerPointHeight(ownPoint)+otherTerrain.findAdjacentInnerPointHeight(otherPoint));
-			float newHeight = Math.min(baseHeight + this.randGen.randomFloatRepeatable(-amplitude, amplitude), this.seaLevel);
+			float newHeight = baseHeight + this.randGen.randomFloatRepeatable(-amplitude, amplitude);
 			MJ3DPoint3D newPoint = MJ3DPoint3D.fromTwoPoints(ownPoint, otherPoint);
-			newPoint.setZ(newHeight);
+			newPoint.setZ(Math.min(seaLevel, newHeight));
 			replace(ownPoint, newPoint);
 			for(MJ3DTerrain otherPointTerrain : otherPoint.getTerrains()){
 				otherPointTerrain.replace(otherPoint, newPoint);
@@ -410,6 +409,9 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	}
 	
 	private float findAdjacentInnerPointHeight(MJ3DPoint3D point){
+		if(point.getOriginalZ()>=this.seaLevel){
+			return point.getOriginalZ();		// Good enough for under water
+		}
 		int r = point.getTerrainPointRow(this);
 		int c = point.getTerrainPointCol(this);
 		// No plausibility checks here. If heights array size is < 2 this may lead to index out of bounds exceptions, but 

@@ -15,13 +15,12 @@ public class MJ3DPoint3D extends MJ3DVector implements MJ3DObject {
 	private int mapIndex;
 	private Set<MJ3DTriad> triads = new HashSet<MJ3DTriad>();
 	private Map<MJ3DTerrain, int[]> terrainPointArrayPositions = new HashMap<MJ3DTerrain, int[]>();
-	
-	public MJ3DPoint3D(MJ3DPoint3D point) {
-		super(point.getX(),point.getY(),point.getZ());
-	}
+	private float originalZ;
 
 	public MJ3DPoint3D(float x, float y, float z) {
 		super(x,y,z);
+		this.originalZ = z;
+		
 	}
 	
 	public void setMapIndex(int index) {
@@ -67,7 +66,8 @@ public class MJ3DPoint3D extends MJ3DVector implements MJ3DObject {
 	}
 	
 	public static MJ3DPoint3D fromTwoPoints(MJ3DPoint3D point1, MJ3DPoint3D point2){
-		MJ3DPoint3D result = new MJ3DPoint3D(point1);
+		MJ3DPoint3D result = new MJ3DPoint3D(point1.x, point1.y, point1.z);
+		result.originalZ = point1.originalZ;
 		result.triads.addAll(point1.triads);
 		result.triads.addAll(point2.triads);
 		for(Entry<MJ3DTerrain, int[]> e : point1.terrainPointArrayPositions.entrySet() ){
@@ -77,5 +77,13 @@ public class MJ3DPoint3D extends MJ3DVector implements MJ3DObject {
 			result.terrainPointArrayPositions.put(e.getKey(), e.getValue());
 		}
 		return result;
+	}
+	
+	public float getOriginalZ() {
+		return originalZ;
+	}
+	
+	public void setOriginalZ(float originalZ) {
+		this.originalZ = originalZ;
 	}
 }

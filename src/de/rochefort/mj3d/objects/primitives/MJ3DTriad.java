@@ -59,18 +59,10 @@ public class MJ3DTriad implements MJ3DObject {
 		return points[0].getZ();
 	}
 	
-	public float getMaxZ(){
-		float result = Float.MIN_VALUE;
+	public float getMinOriginalZ(){
+		float result = Float.MAX_VALUE;
 		for(int i=0; i<this.points.length; i++){
-			result = Math.max(result, points[i].getZ());
-		}
-		return result;
-	}
-	
-	public float getMinZ(){
-		float result = Float.MIN_VALUE;
-		for(int i=0; i<this.points.length; i++){
-			result = Math.min(result, points[i].getZ());
+			result = Math.min(result, points[i].getOriginalZ());
 		}
 		return result;
 	}

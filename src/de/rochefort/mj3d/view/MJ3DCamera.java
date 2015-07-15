@@ -14,7 +14,6 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 	private MJ3DVector localZ = MJ3DVector.Z_UNIT_VECTOR;
 	private int maxTriadCount = Integer.MAX_VALUE;
 	private float maxTriadDistance = Float.MAX_VALUE;
-	private MJ3DVector[] points;
 	private float[] pointDistances;
 	private float[] cachedPointTransformationsX;
 	private float[] cachedPointTransformationsY;

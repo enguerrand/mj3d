@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.objects.MJ3DObject;
 import de.rochefort.mj3d.objects.MJ3DObjectCompound;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;

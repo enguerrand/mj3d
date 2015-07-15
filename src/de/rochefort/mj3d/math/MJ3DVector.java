@@ -3,11 +3,8 @@ package de.rochefort.mj3d.math;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
 
 import de.rochefort.mj3d.objects.MJ3DObject;
-import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 
 public class MJ3DVector implements MJ3DObject {
 	public enum UnitVectorType {X, Y, Z};
