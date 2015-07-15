@@ -68,7 +68,7 @@ class MJ3DMapImpl implements MJ3DMap {
 		float minTmpY = Float.MAX_VALUE;
 		float minTmpZ = Float.MAX_VALUE;
 		for(int i=0; i<pointsArray.length; i++){
-			pointsList.get(i).setIndex(i);
+			pointsList.get(i).setMapIndex(i);
 			pointsArray[i]=pointsList.get(i);
 			maxTmpX = Math.max(maxTmpX, pointsArray[i].getX());
 			maxTmpY = Math.max(maxTmpY, pointsArray[i].getY());
@@ -99,7 +99,7 @@ class MJ3DMapImpl implements MJ3DMap {
 //				pointsTriadCountArray[pointIndex]++;
 
 				MJ3DPoint3D currentPoint = triadList.get(triadIndex).getPoints()[vertice];
-				int pointIndex = currentPoint.getIndex();
+				int pointIndex = currentPoint.getMapIndex();
 				triadPointsArray[triadIndex][vertice]=pointIndex;
 				pointsRedArray[pointIndex]+=triadList.get(triadIndex).getColor().getRed();
 				pointsGreenArray[pointIndex]+=triadList.get(triadIndex).getColor().getGreen();
@@ -119,7 +119,7 @@ class MJ3DMapImpl implements MJ3DMap {
 			
 			triadColorsArray[i]=triadList.get(i).getColor().getRGB();
 			for(int p=0; p<3; p++)
-				triadPointsArray[i][p]=triadList.get(i).getPoints()[p].getIndex();
+				triadPointsArray[i][p]=triadList.get(i).getPoints()[p].getMapIndex();
 		}
 		
 		

@@ -9,6 +9,5 @@ public interface Mergeable extends MJ3DObject{
 
 	public List<MJ3DPoint3D> getEdgePoints(EdgeType edgeType);
 	public void merge(Mergeable mergeable, EdgeType ownEdge, EdgeType otherEdge);
-	
 
 }

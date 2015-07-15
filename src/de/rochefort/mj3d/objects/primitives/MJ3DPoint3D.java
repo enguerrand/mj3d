@@ -1,8 +1,10 @@
 package de.rochefort.mj3d.objects.primitives;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import de.rochefort.mj3d.math.MJ3DVector;
@@ -10,30 +12,24 @@ import de.rochefort.mj3d.objects.MJ3DObject;
 import de.rochefort.mj3d.objects.terrains.MJ3DTerrain;
 
 public class MJ3DPoint3D extends MJ3DVector implements MJ3DObject {
-	private int index;
+	private int mapIndex;
 	private Set<MJ3DTriad> triads = new HashSet<MJ3DTriad>();
 	private Map<MJ3DTerrain, int[]> terrainPointArrayPositions = new HashMap<MJ3DTerrain, int[]>();
-	public MJ3DPoint3D() {
-		this(-1);
-	}
-	public MJ3DPoint3D(int index) {
-		super();
-		this.index = index;
-	}
-	public MJ3DPoint3D(UnitVectorType type) {
-		super(type);
-	}
 	
+	public MJ3DPoint3D(MJ3DPoint3D point) {
+		super(point.getX(),point.getY(),point.getZ());
+	}
+
 	public MJ3DPoint3D(float x, float y, float z) {
 		super(x,y,z);
 	}
 	
-	public void setIndex(int index) {
-		this.index = index;
+	public void setMapIndex(int index) {
+		this.mapIndex = index;
 	}
 	
-	public int getIndex() {
-		return index;
+	public int getMapIndex() {
+		return mapIndex;
 	}
 	
 	public void setTerrainPointPosition(MJ3DTerrain terrain, int row, int col){
@@ -64,5 +60,22 @@ public class MJ3DPoint3D extends MJ3DVector implements MJ3DObject {
 	
 	public Set<MJ3DTriad> getTriads() {
 		return triads;
+	}
+	
+	public Collection<MJ3DTerrain> getTerrains(){
+		return this.terrainPointArrayPositions.keySet();
+	}
+	
+	public static MJ3DPoint3D fromTwoPoints(MJ3DPoint3D point1, MJ3DPoint3D point2){
+		MJ3DPoint3D result = new MJ3DPoint3D(point1);
+		result.triads.addAll(point1.triads);
+		result.triads.addAll(point2.triads);
+		for(Entry<MJ3DTerrain, int[]> e : point1.terrainPointArrayPositions.entrySet() ){
+			result.terrainPointArrayPositions.put(e.getKey(), e.getValue());
+		}
+		for(Entry<MJ3DTerrain, int[]> e : point2.terrainPointArrayPositions.entrySet() ){
+			result.terrainPointArrayPositions.put(e.getKey(), e.getValue());
+		}
+		return result;
 	}
 }
