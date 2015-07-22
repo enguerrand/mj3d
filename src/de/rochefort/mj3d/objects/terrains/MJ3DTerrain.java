@@ -32,5 +32,7 @@ public abstract class MJ3DTerrain implements MJ3DObjectCompound {
 	public abstract int getPointsCount();
 
 	public abstract void replace(MJ3DPoint3D pointToReplace, MJ3DPoint3D replacement);
+	
+	public abstract void create();
 
 }

@@ -436,4 +436,9 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 		return points.size();
 	}
 
+	@Override
+	public void create() {
+		create(false);
+	}
+
 }
