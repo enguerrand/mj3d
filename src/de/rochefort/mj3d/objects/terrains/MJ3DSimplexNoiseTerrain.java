@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.rochefort.mj3d.math.MJ3DVector;
-import de.rochefort.mj3d.math.PerlinNoiseGenerator;
+import de.rochefort.mj3d.math.randomness.PerlinNoiseGenerator;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;

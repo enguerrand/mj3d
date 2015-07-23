@@ -1,6 +1,5 @@
-package de.rochefort.mj3d.math;
+package de.rochefort.mj3d.math.randomness;
 
-import de.rochefort.mj3d.math.randomness.OpenSimplexNoise;
 
 public class PerlinNoiseGenerator {
 	private final OpenSimplexNoise osn;

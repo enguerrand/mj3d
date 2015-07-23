@@ -1,11 +1,10 @@
 package de.rochefort.mj3d.objects.maps;
 
+import java.awt.Color;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import java.awt.Color;
 
 import de.rochefort.mj3d.objects.MJ3DObject;
 
