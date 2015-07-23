@@ -2,40 +2,44 @@ package de.rochefort.mj3d.objects.terrains;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import de.rochefort.mj3d.math.MJ3DVector;
-import de.rochefort.mj3d.math.randomness.SimplexNoise;
+import de.rochefort.mj3d.math.PerlinNoiseGenerator;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.view.ColorBlender;
 
 public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
-
+	private final long seed;
 	private final Color colorShade;
 	private final int seaColorShallow;
 	private final int seaColorDeep;
 	private List<MJ3DTriad> visibleTriads = new ArrayList<MJ3DTriad>();
 	private List<MJ3DPoint3D> points = new ArrayList<MJ3DPoint3D>();
-	private Map<EdgeType, List<MJ3DPoint3D>> edgePoints = new HashMap<EdgeType, List<MJ3DPoint3D>>();
 	private MJ3DVector vectorOfLight = MJ3DVector.Y_UNIT_VECTOR;
 	private MJ3DPoint3D[][] pointsMatrix;
 	private final float width;
 	private final float triadSize;
+	private final float baseFrequency;
+	private final float baseAmplitude;
+	private final float persistence;
 	private float seaLevel;
 	private float ambientLight;
 	private float maxZ = Float.MIN_VALUE;
 
-	public MJ3DSimplexNoiseTerrain(int width, float triadSize, Color shadeColor, float seaLevel, int seaColorDeep, int seaColorShallow, float ambientLight) {
+	public MJ3DSimplexNoiseTerrain(long seed, int width, float triadSize, float baseFrequency, float baseAmplitude, float persistence, Color shadeColor, float seaLevel, int seaColorDeep, int seaColorShallow, float ambientLight) {
 		super();
+		this.seed = seed;
 		this.seaLevel = seaLevel;
 		this.colorShade = shadeColor;
 		this.seaColorShallow = seaColorShallow;
 		this.seaColorDeep = seaColorDeep;
 		this.ambientLight = ambientLight;
 		this.triadSize = triadSize;
+		this.baseFrequency = baseFrequency;
+		this.baseAmplitude = baseAmplitude;
+		this.persistence = persistence;
 		this.width = width;
 		this.pointsMatrix = new MJ3DPoint3D[width][width];
 
@@ -116,12 +120,14 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 	 * P0 P1 P2 P3
 	 */
 	private void createTerrain() {
+		PerlinNoiseGenerator g = new PerlinNoiseGenerator(this.seed, 3, 1f);
 		for(int xIndex = 0; xIndex < width; xIndex++){
 			for(int yIndex = 0; yIndex < width; yIndex++){
 				float x = xIndex * triadSize;
 				float y = yIndex * triadSize;
-				float z = ((float)SimplexNoise.noise(x, y))*100f;
+				float z = (g.perlinNoise2D(x, y, 10, persistence, baseFrequency, baseAmplitude));
 				MJ3DPoint3D pt = new MJ3DPoint3D(x, y, z);
+				pt.setTerrainPointPosition(this, xIndex, yIndex);
 				pointsMatrix[xIndex][yIndex] = pt;
 				points.add(pt);
 			}
@@ -152,25 +158,24 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 		return points.size();
 	}
 
-	
 	@Override
+	// TODO Untested!
 	public void replace(MJ3DPoint3D pointToReplace, MJ3DPoint3D replacement) {
-		//FIXME
-//		int r = pointToReplace.getTerrainPointRow(this);
-//		int c = pointToReplace.getTerrainPointCol(this);
-//		replacement.setTerrainPointPosition(this, r, c);
-//		points.remove(pointToReplace);
-//		points.add(replacement);
-//		List<MJ3DTriad> triads = new ArrayList<MJ3DTriad>();
-//		triads.addAll(pointToReplace.getTriads());
-//		for(MJ3DTriad t : triads){
-//			t.replacePoint(pointToReplace, replacement);
-//			if(t.getMinOriginalZ() >= seaLevel){
-//				applySeaColor(maxZ, t);
-//			}
-//			else{
-//				t.setColor(ColorBlender.scaleColor(colorShade, ambientLight - (1f - ambientLight) *0.5f * (MJ3DVector.dotProduct(vectorOfLight, t.getNormal())-1)));
-//			}
-//		}
+		int r = pointToReplace.getTerrainPointRow(this);
+		int c = pointToReplace.getTerrainPointCol(this);
+		replacement.setTerrainPointPosition(this, r, c);
+		points.remove(pointToReplace);
+		points.add(replacement);
+		List<MJ3DTriad> triads = new ArrayList<MJ3DTriad>();
+		triads.addAll(pointToReplace.getTriads());
+		for(MJ3DTriad t : triads){
+			t.replacePoint(pointToReplace, replacement);
+			if(t.getMinOriginalZ() >= seaLevel){
+				applySeaColor(maxZ, t);
+			}
+			else{
+				t.setColor(ColorBlender.scaleColor(colorShade, ambientLight - (1f - ambientLight) *0.5f * (MJ3DVector.dotProduct(vectorOfLight, t.getNormal())-1)));
+			}
+		}
 	}
 }
