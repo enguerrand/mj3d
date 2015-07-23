@@ -14,6 +14,7 @@ import de.rochefort.mj3d.math.randomness.RandomNumberGenerator;
 import de.rochefort.mj3d.objects.Mergeable;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
+import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
 import de.rochefort.mj3d.view.ColorBlender;
 
 public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
@@ -56,8 +57,8 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 		createTriads();
 	}
 	
-	public MJ3DDiamondSquareTerrain(long seed, float width, int steps, float roughness, float initialAmplitude, Color shadeColor, float seaLevel, int seaColorDeep,  int seaColorShallow, float ambientLight) {
-		this(width, steps, roughness, shadeColor, seaLevel, seaColorDeep, seaColorShallow, ambientLight);
+	public MJ3DDiamondSquareTerrain(long seed, float width, int steps, float roughness, float initialAmplitude, Color shadeColor, float seaLevel, int seaColorDeep,  int seaColorShallow, float ambientLight, ColorScheme colorScheme) {
+		this(width, steps, roughness, colorScheme.getEarthColor(), seaLevel, colorScheme.getSeaColorDeep().getRGB(), colorScheme.getSeaColorShallow().getRGB(), ambientLight);
 		randGen = new RandomNumberGenerator(seed);
 		this.initialAmplitude = initialAmplitude;
 		int rows = (int) Math.pow(2, steps) + 1;

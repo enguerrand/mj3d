@@ -8,6 +8,7 @@ import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.math.PerlinNoiseGenerator;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
+import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
 import de.rochefort.mj3d.view.ColorBlender;
 
 public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
@@ -28,13 +29,13 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 	private float ambientLight;
 	private float maxZ = Float.MIN_VALUE;
 
-	public MJ3DSimplexNoiseTerrain(long seed, int width, float triadSize, float baseFrequency, float baseAmplitude, float persistence, Color shadeColor, float seaLevel, int seaColorDeep, int seaColorShallow, float ambientLight) {
+	public MJ3DSimplexNoiseTerrain(long seed, int width, float triadSize, float baseFrequency, float baseAmplitude, float persistence, float seaLevel, float ambientLight, ColorScheme colorScheme) {
 		super();
 		this.seed = seed;
 		this.seaLevel = seaLevel;
-		this.colorShade = shadeColor;
-		this.seaColorShallow = seaColorShallow;
-		this.seaColorDeep = seaColorDeep;
+		this.colorShade = colorScheme.getEarthColor();
+		this.seaColorShallow = colorScheme.getSeaColorShallow().getRGB();
+		this.seaColorDeep = colorScheme.getSeaColorDeep().getRGB();
 		this.ambientLight = ambientLight;
 		this.triadSize = triadSize;
 		this.baseFrequency = baseFrequency;
