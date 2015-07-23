@@ -1,6 +1,9 @@
 package de.rochefort.mj3d.math.randomness;
 
 /*
+ * Code taken from 
+ *   https://gist.github.com/KdotJPG/b1270127455a94ac5d19
+ *   
  * OpenSimplex Noise in Java.
  * by Kurt Spencer
  * 
@@ -14,6 +17,7 @@ package de.rochefort.mj3d.math.randomness;
  * - Changed seed-based constructor to be independent
  *   of any particular randomization library, so results
  *   will be the same when ported to other languages.
+ *   
  */
  
 public class OpenSimplexNoise {
