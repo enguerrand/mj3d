@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import de.rochefort.mj3d.objects.MJ3DObject;
+import de.rochefort.mj3d.objects.terrains.MJ3DInfiniteSimplexNoiseTerrain;
+import de.rochefort.mj3d.objects.terrains.MJ3DSimplexNoiseTerrain;
 
 public class MJ3DMapBuilder {
 	private final AtomicBoolean finalized = new AtomicBoolean(false);
@@ -14,7 +16,7 @@ public class MJ3DMapBuilder {
 	private boolean foggy = true;
 	private boolean wireframe = false;
 	private Color backgroundColor = Color.BLACK;
-	
+	private MJ3DInfiniteSimplexNoiseTerrain terrain;
 	private MJ3DMapBuilder(){
 		
 	}
@@ -47,11 +49,20 @@ public class MJ3DMapBuilder {
 		mj3dObjects.addAll(mj3dObject);
 		return this;
 	}
+
+	public MJ3DMapBuilder setTerrain(MJ3DInfiniteSimplexNoiseTerrain terrain){
+		this.terrain = terrain;
+		return this;
+	}
 	
 	public MJ3DMap build() {
 		if(!finalized.compareAndSet(false, true)){
 			throw new IllegalStateException("MJ3DMapBuilder: build() Method may only be called once!");
 		}
-		return new MJ3DMapImpl(mj3dObjects, backgroundColor.getRGB(), foggy, wireframe);
+		if(terrain == null){
+			throw new IllegalStateException("Terrain must be set before building!");
+		}
+		return new MJ3DDynamicMapImpl(terrain, backgroundColor, wireframe);
+//		return new MJ3DStaticMapImpl(mj3dObjects, backgroundColor.getRGB(), foggy, wireframe);
 	}
 }

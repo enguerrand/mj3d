@@ -7,7 +7,7 @@ import de.rochefort.mj3d.objects.maps.MJ3DMap;
 import de.rochefort.mj3d.util.PerformanceTimer;
 
 public class MJ3DCamera implements MJ3DViewingPosition {
-	private final MJ3DMap map;
+	private MJ3DMap map;
 	private MJ3DVector position = new MJ3DVector();
 	private MJ3DVector localX = MJ3DVector.X_UNIT_VECTOR;
 	private MJ3DVector localY = MJ3DVector.Y_UNIT_VECTOR;
@@ -24,20 +24,28 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 	private float tolerance = 1e-14f;
 	private Quaternion orientation = new Quaternion();
 
+	public MJ3DCamera() {
+	}
+	
 	public MJ3DCamera(MJ3DMap map) {
+		setMap(map);
+	}
+
+	public void setMap(MJ3DMap map) {
 		this.map = map;
-		pointDistances = new float[map.getPointsCount()];
-		cachedPointTransformationsX = new float[map.getPointsCount()]; 
-		cachedPointTransformationsY = new float[map.getPointsCount()]; 
-		cachedPointTransformationsZ = new float[map.getPointsCount()]; 
-		cachedPointProjectionsX = new int[map.getPointsCount()]; 
-		cachedPointProjectionsY = new int[map.getPointsCount()]; 
+		int pointCount = map.getPointsCount(this);
+		pointDistances = new float[pointCount];
+		cachedPointTransformationsX = new float[pointCount]; 
+		cachedPointTransformationsY = new float[pointCount]; 
+		cachedPointTransformationsZ = new float[pointCount]; 
+		cachedPointProjectionsX = new int[pointCount]; 
+		cachedPointProjectionsY = new int[pointCount]; 
 		clearCacheArrays();
 		orientation.normalizeIfNeeded();
 	}
 	
 	private void clearCacheArrays(){
-		for(int i=0; i<map.getPointsCount(); i++){
+		for(int i=0; i<map.getPointsCount(this); i++){
 			pointDistances[i] 				= Float.MIN_VALUE;
 			cachedPointTransformationsX[i] 	= Float.MIN_VALUE;
 			cachedPointTransformationsY[i] 	= Float.MIN_VALUE;
@@ -51,9 +59,10 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 		PerformanceTimer.start();
 		MJ3DMatrix rotationMatrix = new MJ3DMatrix(orientation);
 
-		MJ3DVector[] points = map.getPointsArray();
-		int[][] triadPoints = map.getTriadPointsArray();
-		int[] pointColors = map.getPointColorsArray();
+		map.update(this);
+		MJ3DVector[] points = map.getPointsArray(this);
+		int[][] triadPoints = map.getTriadPointsArray(this);
+		int[] pointColors = map.getPointColorsArray(this);
 		clearCacheArrays();
 		zBuffer.setBackgroundColor(map.getBackgroundColor(this));
 		

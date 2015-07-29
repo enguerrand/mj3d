@@ -7,20 +7,15 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.rochefort.mj3d.math.Quaternion;
 import de.rochefort.mj3d.objects.MJ3DObject;
 import de.rochefort.mj3d.objects.MJ3DObjectCompound;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
-class MJ3DMapImpl implements MJ3DMap {
+class MJ3DStaticMapImpl implements MJ3DMap {
 	private final int bg;
-	private final float minX;
-	private final float maxX;
-	private final float minY;
-	private final float maxY;
-	private final float minZ;
-	private final float maxZ;
 	private final boolean foggy;
 	private final boolean wireframe;
 	private final MJ3DPoint3D[] pointsArray;
@@ -28,7 +23,7 @@ class MJ3DMapImpl implements MJ3DMap {
 	private final int[] triadColorsArray;
 	private final int[] pointColorsArray;
 	
-	MJ3DMapImpl(Collection<MJ3DObject> mj3dObjects, int backgroundColor, boolean foggy, boolean wireframe){
+	MJ3DStaticMapImpl(Collection<MJ3DObject> mj3dObjects, int backgroundColor, boolean foggy, boolean wireframe){
 		this.bg = backgroundColor;
 		this.foggy = foggy;
 		this.wireframe = wireframe;
@@ -39,8 +34,8 @@ class MJ3DMapImpl implements MJ3DMap {
 			if(obj instanceof MJ3DObjectCompound){
 				MJ3DObjectCompound comp = (MJ3DObjectCompound)obj;
 				objectsCompounds.add(comp);
-				triadList.addAll(comp.getTriads());
-				pointsList.addAll(comp.getPoints());
+				triadList.addAll(comp.getTriads(null));
+				pointsList.addAll(comp.getPoints(null));
 			} else if (obj instanceof MJ3DTriad){
 				MJ3DTriad triad = (MJ3DTriad)obj;
 				triadList.add(triad);
@@ -58,31 +53,10 @@ class MJ3DMapImpl implements MJ3DMap {
 		int[] pointsBlueArray = new int[pointsList.size()];
 		int[] pointsTriadCountArray = new int[pointsList.size()];
 		// Fill the pointsarray
-		
-		
-		float maxTmpX = Float.MIN_VALUE;
-		float maxTmpY = Float.MIN_VALUE;
-		float maxTmpZ = Float.MIN_VALUE;
-		float minTmpX = Float.MAX_VALUE;
-		float minTmpY = Float.MAX_VALUE;
-		float minTmpZ = Float.MAX_VALUE;
 		for(int i=0; i<pointsArray.length; i++){
 			pointsList.get(i).setMapIndex(i);
 			pointsArray[i]=pointsList.get(i);
-			maxTmpX = Math.max(maxTmpX, pointsArray[i].getX());
-			maxTmpY = Math.max(maxTmpY, pointsArray[i].getY());
-			maxTmpZ = Math.max(maxTmpZ, pointsArray[i].getZ());
-			minTmpX = Math.min(minTmpX, pointsArray[i].getX());
-			minTmpY = Math.min(minTmpY, pointsArray[i].getY());
-			minTmpZ = Math.min(minTmpZ, pointsArray[i].getZ());
 		}
-		
-		maxX = maxTmpX; 
-		maxY = maxTmpY; 
-		maxZ = maxTmpZ; 
-		minX = minTmpX; 
-		minY = minTmpY; 
-		minZ = minTmpZ; 
 		
 		// iterate over all triads and add their color to all their respective vertices
 		// as a result each point receives color from its three adjacent triads.
@@ -130,36 +104,6 @@ class MJ3DMapImpl implements MJ3DMap {
 	}
 
 	@Override
-	public float getMinX() {
-		return minX;
-	}
-
-	@Override
-	public float getMaxX() {
-		return maxX;
-	}
-
-	@Override
-	public float getMinY() {
-		return minY;
-	}
-
-	@Override
-	public float getMaxY() {
-		return maxY;
-	}
-
-	@Override
-	public float getMinZ() {
-		return minZ;
-	}
-
-	@Override
-	public float getMaxZ() {
-		return maxZ;
-	}
-
-	@Override
 	public boolean isFoggy() {
 		return foggy;
 	}
@@ -170,27 +114,32 @@ class MJ3DMapImpl implements MJ3DMap {
 	}
 
 	@Override
-	public int getPointsCount() {
+	public int getPointsCount(MJ3DViewingPosition viewingPosition) {
 		return pointsArray.length;
 	}
 
 	@Override
-	public int getTriadCount() {
+	public int getTriadCount(MJ3DViewingPosition viewingPosition) {
 		return triadPointsArray.length;
 	}
 
 	@Override
-	public MJ3DPoint3D[] getPointsArray() {
+	public MJ3DPoint3D[] getPointsArray(MJ3DViewingPosition viewingPosition) {
 		return pointsArray;
 	}
 
 	@Override
-	public int[][] getTriadPointsArray() {
+	public int[][] getTriadPointsArray(MJ3DViewingPosition viewingPosition) {
 		return triadPointsArray;
 	}
 
 	@Override
-	public int[] getPointColorsArray() {
+	public int[] getPointColorsArray(MJ3DViewingPosition viewingPosition) {
 		return pointColorsArray;
+	}
+
+	@Override
+	public void update(MJ3DViewingPosition newPosition) {
+		
 	}
 }

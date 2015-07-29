@@ -2,6 +2,7 @@ package de.rochefort.mj3d.objects.terrains;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import de.rochefort.mj3d.math.MJ3DVector;
@@ -12,16 +13,22 @@ import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
 import de.rochefort.mj3d.view.ColorBlender;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
-public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
+public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	private final long seed;
 	private final Color colorShade;
 	private final int seaColorShallow;
 	private final int seaColorDeep;
-	private List<MJ3DTriad> visibleTriads = new ArrayList<MJ3DTriad>();
-	private List<MJ3DPoint3D> points = new ArrayList<MJ3DPoint3D>();
 	private MJ3DVector vectorOfLight = MJ3DVector.Y_UNIT_VECTOR;
+	private MJ3DTriad[] visibleTriads;
+	private MJ3DTriad[] visibleTriadBuffer;
+	private MJ3DPoint3D[] points;
+	private MJ3DPoint3D[] pointBuffer;
 	private MJ3DPoint3D[][] pointsMatrix;
-	private final float width;
+	private MJ3DPoint3D[][] pointsMatrixBuffer;
+	private MJ3DViewingPosition lastViewingPosition;
+	private final PerlinNoiseGenerator pnGen;
+	private final int width;
+	private final float visibility;
 	private final float triadSize;
 	private final float baseFrequency;
 	private final float baseAmplitude;
@@ -30,9 +37,10 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 	private float ambientLight;
 	private float maxZ = Float.MIN_VALUE;
 
-	public MJ3DSimplexNoiseTerrain(long seed, int width, float triadSize, float baseFrequency, float baseAmplitude, float persistence, float seaLevel, float ambientLight, ColorScheme colorScheme) {
+	public MJ3DInfiniteSimplexNoiseTerrain(MJ3DViewingPosition initialViewingPosition, long seed, float visibility, float triadSize, float baseFrequency, float baseAmplitude, float persistence, float seaLevel, float ambientLight, ColorScheme colorScheme) {
 		super();
 		this.seed = seed;
+		this.lastViewingPosition = initialViewingPosition;
 		this.seaLevel = seaLevel;
 		this.colorShade = colorScheme.getEarthColor();
 		this.seaColorShallow = colorScheme.getSeaColorShallow().getRGB();
@@ -42,22 +50,51 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 		this.baseFrequency = baseFrequency;
 		this.baseAmplitude = baseAmplitude;
 		this.persistence = persistence;
-		this.width = width;
+		this.visibility = visibility;
+		this.width = (int)(2*visibility/triadSize)+1;
+		this.points = new MJ3DPoint3D[width*width];
+		this.pointBuffer = new MJ3DPoint3D[width*width];
 		this.pointsMatrix = new MJ3DPoint3D[width][width];
-
+		this.pointsMatrixBuffer = new MJ3DPoint3D[width][width];
+		int triadCount = (width-1)*(width-1)*2;
+		this.visibleTriads = new MJ3DTriad[triadCount];
+		this.visibleTriadBuffer = new MJ3DTriad[triadCount];
+		this.pnGen = new PerlinNoiseGenerator(this.seed, 3, 1f);
 	}
 
 	@Override
 	public void create(){
-		createTerrain();
+		create(this.lastViewingPosition);
 		createTriads();
+	}
+	
+	public void update(MJ3DViewingPosition newPosition){
+		create(newPosition);
+		createTriads();
+	}
+	
+	public void create(MJ3DViewingPosition position){
+		maxZ = Float.MIN_VALUE;
+		float xMin = position.getXPos() - visibility;
+		float yMin = position.getYPos() - visibility;
+		for(int xIndex = 0; xIndex < width; xIndex++){
+			for(int yIndex = 0; yIndex < width; yIndex++){
+				float x = xMin + xIndex * triadSize;
+				float y = yMin + yIndex * triadSize;
+				float z = (pnGen.perlinNoise2D(x, y, 10, persistence, baseFrequency, baseAmplitude));
+				MJ3DPoint3D pt = new MJ3DPoint3D(x, y, z);
+				pt.setTerrainPointPosition(this, xIndex, yIndex);
+				pointsMatrix[xIndex][yIndex] = pt;
+				points[xIndex + yIndex*width] = pt;
+				pt.setMapIndex(xIndex + yIndex*width);
+				maxZ = Math.max(maxZ, z);
+			}
+		}
 	}
 	
 
 	private void createTriads() {
-		maxZ = Float.MIN_VALUE;
-		points.forEach(p-> maxZ = Math.max(maxZ, p.getZ()));
-		
+		int triadIndex = 0;
 		float illuminationFactor = (1f - ambientLight) *0.5f;
 		for (int r = 0; r < pointsMatrix.length - 1; r++) {
 			for (int c = 0; c < pointsMatrix.length - 1; c++) {
@@ -92,8 +129,8 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 				else{
 					newTriad2.setColor(ColorBlender.scaleColor(colorShade, lighting2));
 				}
-				this.visibleTriads.add(newTriad1);
-				this.visibleTriads.add(newTriad2);
+				this.visibleTriads[triadIndex++]=newTriad1;
+				this.visibleTriads[triadIndex++]=newTriad2;
 			}
 		}
 
@@ -115,61 +152,33 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 			}
 		}
 	}
-
-	/*
-	 * Arrangement of input points:
-	 * 
-	 * P0 P1 P2 P3
-	 */
-	private void createTerrain() {
-		PerlinNoiseGenerator g = new PerlinNoiseGenerator(this.seed, 3, 1f);
-		for(int xIndex = 0; xIndex < width; xIndex++){
-			for(int yIndex = 0; yIndex < width; yIndex++){
-				float x = xIndex * triadSize;
-				float y = yIndex * triadSize;
-				float z = (g.perlinNoise2D(x, y, 10, persistence, baseFrequency, baseAmplitude));
-				MJ3DPoint3D pt = new MJ3DPoint3D(x, y, z);
-				pt.setTerrainPointPosition(this, xIndex, yIndex);
-				pointsMatrix[xIndex][yIndex] = pt;
-				points.add(pt);
-			}
-		}
-	}
-
 	
 	@Override
 	public List<MJ3DTriad> getTriads(MJ3DViewingPosition viewingPosition) {
-		return visibleTriads;
+		return Arrays.asList(visibleTriads);
 	}
 	
 	@Override
 	public List<MJ3DPoint3D> getPoints(MJ3DViewingPosition viewingPosition) {
+		return Arrays.asList(this.points);
+	}
+	
+	public MJ3DTriad[] getTriadsArray(MJ3DViewingPosition viewingPosition) {
+		return visibleTriads;
+	}
+	
+	public MJ3DPoint3D[] getPointsArray(MJ3DViewingPosition viewingPosition) {
 		return this.points;
 	}
 
 	@Override
 	public int getPointsCount(MJ3DViewingPosition viewingPosition) {
-		return points.size();
+		return points.length;
 	}
 
 	@Override
 	// TODO Untested!
 	public void replace(MJ3DPoint3D pointToReplace, MJ3DPoint3D replacement) {
-		int r = pointToReplace.getTerrainPointRow(this);
-		int c = pointToReplace.getTerrainPointCol(this);
-		replacement.setTerrainPointPosition(this, r, c);
-		points.remove(pointToReplace);
-		points.add(replacement);
-		List<MJ3DTriad> triads = new ArrayList<MJ3DTriad>();
-		triads.addAll(pointToReplace.getTriads());
-		for(MJ3DTriad t : triads){
-			t.replacePoint(pointToReplace, replacement);
-			if(t.getMinOriginalZ() >= seaLevel){
-				applySeaColor(maxZ, t);
-			}
-			else{
-				t.setColor(ColorBlender.scaleColor(colorShade, ambientLight - (1f - ambientLight) *0.5f * (MJ3DVector.dotProduct(vectorOfLight, t.getNormal())-1)));
-			}
-		}
+		throw new UnsupportedOperationException("Replacement is not supported in dynamic map! (And should not be needed either!)");
 	}
 }

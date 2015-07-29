@@ -16,6 +16,7 @@ import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
 import de.rochefort.mj3d.view.ColorBlender;
+import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 
@@ -290,12 +291,12 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	}
 
 	@Override
-	public List<MJ3DTriad> getTriads() {
+	public List<MJ3DTriad> getTriads(MJ3DViewingPosition viewingPosition) {
 		return visibleTriads;
 	}
 	
 	public void translate(MJ3DVector translationVector){
-		List<MJ3DPoint3D> points = getPoints();
+		List<MJ3DPoint3D> points = this.points;
 		for(MJ3DPoint3D p : points){
 			p.translate(translationVector);
 		}
@@ -428,12 +429,12 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	}
 
 	@Override
-	public List<MJ3DPoint3D> getPoints() {
+	public List<MJ3DPoint3D> getPoints(MJ3DViewingPosition viewingPosition) {
 		return this.points;
 	}
 
 	@Override
-	public int getPointsCount() {
+	public int getPointsCount(MJ3DViewingPosition viewingPosition) {
 		return points.size();
 	}
 
