@@ -1,9 +1,6 @@
 package de.rochefort.mj3d.objects.terrains;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.math.randomness.PerlinNoiseGenerator;
@@ -68,6 +65,7 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 		createTriads();
 	}
 	
+	@Override
 	public void update(MJ3DViewingPosition newPosition){
 		create(newPosition);
 		createTriads();
@@ -154,25 +152,17 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	}
 	
 	@Override
-	public List<MJ3DTriad> getTriads(MJ3DViewingPosition viewingPosition) {
-		return Arrays.asList(visibleTriads);
-	}
-	
-	@Override
-	public List<MJ3DPoint3D> getPoints(MJ3DViewingPosition viewingPosition) {
-		return Arrays.asList(this.points);
-	}
-	
-	public MJ3DTriad[] getTriadsArray(MJ3DViewingPosition viewingPosition) {
+	public MJ3DTriad[] getTriads() {
 		return visibleTriads;
 	}
 	
-	public MJ3DPoint3D[] getPointsArray(MJ3DViewingPosition viewingPosition) {
+	@Override
+	public MJ3DPoint3D[] getPoints() {
 		return this.points;
 	}
 
 	@Override
-	public int getPointsCount(MJ3DViewingPosition viewingPosition) {
+	public int getPointsCount() {
 		return points.length;
 	}
 

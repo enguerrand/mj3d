@@ -23,8 +23,8 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	private final Color colorShade;
 	private final int seaColorShallow;
 	private final int seaColorDeep;
-	private List<MJ3DTriad> visibleTriads = new ArrayList<MJ3DTriad>();
-	private List<MJ3DPoint3D> points = new ArrayList<MJ3DPoint3D>();
+	private MJ3DTriad[] visibleTriads;
+	private MJ3DPoint3D[] points;
 	private Map<EdgeType, List<MJ3DPoint3D>> edgePoints = new HashMap<EdgeType, List<MJ3DPoint3D>>();
 	private MJ3DVector vectorOfLight = MJ3DVector.Y_UNIT_VECTOR;
 	private float[][] heights;
@@ -87,13 +87,15 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	}
 
 	private void createTriads() {
+		List<MJ3DTriad> tmpTriads = new ArrayList<MJ3DTriad>();
+		int pointIndex = 0;
 		float deltaX = width / (heights.length - 1);
 		MJ3DPoint3D[][] tmpPoints = new MJ3DPoint3D[heights.length][heights.length];
 		for (int r = 0; r < heights.length; r++) {
 			for (int c = 0; c < heights.length; c++) {
 				tmpPoints[r][c] = new MJ3DPoint3D(deltaX * r, deltaX * c, heights[r][c]);
 				tmpPoints[r][c].setTerrainPointPosition(this, r, c);
-				this.points.add(tmpPoints[r][c]);
+				this.points[pointIndex++]=tmpPoints[r][c];
 				
 				if(r==0)
 					edgePoints.get(EdgeType.NORTH).add(tmpPoints[r][c]);
@@ -150,12 +152,16 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 				else{
 					newTriad2.setColor(ColorBlender.scaleColor(colorShade, lighting2));
 				}
-				this.visibleTriads.add(newTriad1);
-				this.visibleTriads.add(newTriad2);
+				tmpTriads.add(newTriad1);
+				tmpTriads.add(newTriad2);
 			}
 		}
 
 		createSeaLevel();
+		this.visibleTriads = new MJ3DTriad[tmpTriads.size()];
+		for(int i=0; i< tmpTriads.size(); i++){
+			this.visibleTriads[i]=tmpTriads.get(i);
+		}
 	}
 
 	private void applySeaColor(float maxZ, MJ3DTriad triad) {
@@ -201,6 +207,7 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	 */
 	private void createDiamondSquareTerrain(boolean wrappable) {
 		int totalRowCount = heights.length;
+		points = new MJ3DPoint3D[totalRowCount*totalRowCount];
 		int squareEdgeLength = totalRowCount - 1;
 		int halfSquareEdgeLength = (int) (0.5 * squareEdgeLength);
 		if(heights[0][0] == Float.MAX_VALUE)
@@ -291,13 +298,12 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	}
 
 	@Override
-	public List<MJ3DTriad> getTriads(MJ3DViewingPosition viewingPosition) {
+	public MJ3DTriad[] getTriads() {
 		return visibleTriads;
 	}
 	
 	public void translate(MJ3DVector translationVector){
-		List<MJ3DPoint3D> points = this.points;
-		for(MJ3DPoint3D p : points){
+		for(MJ3DPoint3D p : this.points){
 			p.translate(translationVector);
 		}
 	}
@@ -365,8 +371,11 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 		int r = pointToReplace.getTerrainPointRow(this);
 		int c = pointToReplace.getTerrainPointCol(this);
 		replacement.setTerrainPointPosition(this, r, c);
-		points.remove(pointToReplace);
-		points.add(replacement);
+		for(int i=0; i<points.length; i++){
+			if(points[i]==pointToReplace){
+				points[i]=replacement;
+			}
+		}
 		heights[r][c]=Math.min(replacement.getZ(), this.seaLevel);
 		List<MJ3DTriad> triads = new ArrayList<MJ3DTriad>();
 		triads.addAll(pointToReplace.getTriads());
@@ -429,13 +438,13 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	}
 
 	@Override
-	public List<MJ3DPoint3D> getPoints(MJ3DViewingPosition viewingPosition) {
+	public MJ3DPoint3D[] getPoints() {
 		return this.points;
 	}
 
 	@Override
-	public int getPointsCount(MJ3DViewingPosition viewingPosition) {
-		return points.size();
+	public int getPointsCount() {
+		return points.length;
 	}
 
 	@Override
@@ -443,4 +452,8 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 		create(false);
 	}
 
+	@Override
+	public void update(MJ3DViewingPosition viewingPosition) {
+		
+	}
 }

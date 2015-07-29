@@ -7,8 +7,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import de.rochefort.mj3d.objects.MJ3DObject;
-import de.rochefort.mj3d.objects.terrains.MJ3DInfiniteSimplexNoiseTerrain;
-import de.rochefort.mj3d.objects.terrains.MJ3DSimplexNoiseTerrain;
+import de.rochefort.mj3d.objects.terrains.MJ3DTerrain;
 
 public class MJ3DMapBuilder {
 	private final AtomicBoolean finalized = new AtomicBoolean(false);
@@ -16,7 +15,7 @@ public class MJ3DMapBuilder {
 	private boolean foggy = true;
 	private boolean wireframe = false;
 	private Color backgroundColor = Color.BLACK;
-	private MJ3DInfiniteSimplexNoiseTerrain terrain;
+	private MJ3DTerrain dynamicTerrain;
 	private MJ3DMapBuilder(){
 		
 	}
@@ -50,8 +49,8 @@ public class MJ3DMapBuilder {
 		return this;
 	}
 
-	public MJ3DMapBuilder setTerrain(MJ3DInfiniteSimplexNoiseTerrain terrain){
-		this.terrain = terrain;
+	public MJ3DMapBuilder setDynamicTerrain(MJ3DTerrain terrain){
+		this.dynamicTerrain = terrain;
 		return this;
 	}
 	
@@ -59,10 +58,9 @@ public class MJ3DMapBuilder {
 		if(!finalized.compareAndSet(false, true)){
 			throw new IllegalStateException("MJ3DMapBuilder: build() Method may only be called once!");
 		}
-		if(terrain == null){
-			throw new IllegalStateException("Terrain must be set before building!");
+		if(dynamicTerrain == null){
+			return new MJ3DStaticMapImpl(mj3dObjects, backgroundColor.getRGB(), foggy, wireframe);
 		}
-		return new MJ3DDynamicMapImpl(terrain, backgroundColor, wireframe);
-//		return new MJ3DStaticMapImpl(mj3dObjects, backgroundColor.getRGB(), foggy, wireframe);
+		return new MJ3DDynamicMapImpl(dynamicTerrain, backgroundColor, wireframe);
 	}
 }

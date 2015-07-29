@@ -17,11 +17,11 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 	private final Color colorShade;
 	private final int seaColorShallow;
 	private final int seaColorDeep;
-	private List<MJ3DTriad> visibleTriads = new ArrayList<MJ3DTriad>();
-	private List<MJ3DPoint3D> points = new ArrayList<MJ3DPoint3D>();
+	private MJ3DTriad[] visibleTriads;
+	private MJ3DPoint3D[] points;
 	private MJ3DVector vectorOfLight = MJ3DVector.Y_UNIT_VECTOR;
 	private MJ3DPoint3D[][] pointsMatrix;
-	private final float width;
+	private final int width;
 	private final float triadSize;
 	private final float baseFrequency;
 	private final float baseAmplitude;
@@ -55,8 +55,12 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 	
 
 	private void createTriads() {
+		List<MJ3DTriad> tmpTriads = new ArrayList<MJ3DTriad>();
+		
 		maxZ = Float.MIN_VALUE;
-		points.forEach(p-> maxZ = Math.max(maxZ, p.getZ()));
+		for(int i=0; i<points.length; i++){
+			maxZ = Math.max(maxZ, points[i].getZ());
+		}
 		
 		float illuminationFactor = (1f - ambientLight) *0.5f;
 		for (int r = 0; r < pointsMatrix.length - 1; r++) {
@@ -92,12 +96,17 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 				else{
 					newTriad2.setColor(ColorBlender.scaleColor(colorShade, lighting2));
 				}
-				this.visibleTriads.add(newTriad1);
-				this.visibleTriads.add(newTriad2);
+				tmpTriads.add(newTriad1);
+				tmpTriads.add(newTriad2);
 			}
 		}
 
 		createSeaLevel();
+		
+		this.visibleTriads = new MJ3DTriad[tmpTriads.size()];
+		for(int i=0; i< tmpTriads.size(); i++){
+			this.visibleTriads[i]=tmpTriads.get(i);
+		}
 	}
 
 	private void applySeaColor(float maxZ, MJ3DTriad triad) {
@@ -123,6 +132,7 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 	 */
 	private void createTerrain() {
 		PerlinNoiseGenerator g = new PerlinNoiseGenerator(this.seed, 3, 1f);
+		points = new MJ3DPoint3D[width*width];
 		for(int xIndex = 0; xIndex < width; xIndex++){
 			for(int yIndex = 0; yIndex < width; yIndex++){
 				float x = xIndex * triadSize;
@@ -131,25 +141,25 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 				MJ3DPoint3D pt = new MJ3DPoint3D(x, y, z);
 				pt.setTerrainPointPosition(this, xIndex, yIndex);
 				pointsMatrix[xIndex][yIndex] = pt;
-				points.add(pt);
+				points[xIndex + yIndex*width] = pt;
 			}
 		}
 	}
 
 	
 	@Override
-	public List<MJ3DTriad> getTriads(MJ3DViewingPosition viewingPosition) {
+	public MJ3DTriad[] getTriads() {
 		return visibleTriads;
 	}
 	
 	@Override
-	public List<MJ3DPoint3D> getPoints(MJ3DViewingPosition viewingPosition) {
+	public MJ3DPoint3D[] getPoints() {
 		return this.points;
 	}
 
 	@Override
-	public int getPointsCount(MJ3DViewingPosition viewingPosition) {
-		return points.size();
+	public int getPointsCount() {
+		return points.length;
 	}
 
 	@Override
@@ -158,8 +168,11 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 		int r = pointToReplace.getTerrainPointRow(this);
 		int c = pointToReplace.getTerrainPointCol(this);
 		replacement.setTerrainPointPosition(this, r, c);
-		points.remove(pointToReplace);
-		points.add(replacement);
+		for(int i=0; i<points.length; i++){
+			if(points[i]==pointToReplace){
+				points[i]=replacement;
+			}
+		}
 		List<MJ3DTriad> triads = new ArrayList<MJ3DTriad>();
 		triads.addAll(pointToReplace.getTriads());
 		for(MJ3DTriad t : triads){
@@ -171,5 +184,10 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 				t.setColor(ColorBlender.scaleColor(colorShade, ambientLight - (1f - ambientLight) *0.5f * (MJ3DVector.dotProduct(vectorOfLight, t.getNormal())-1)));
 			}
 		}
+	}
+
+	@Override
+	public void update(MJ3DViewingPosition viewingPosition) {
+		
 	}
 }

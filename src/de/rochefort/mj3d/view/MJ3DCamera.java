@@ -33,7 +33,7 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 
 	public void setMap(MJ3DMap map) {
 		this.map = map;
-		int pointCount = map.getPointsCount(this);
+		int pointCount = map.getPointsCount();
 		pointDistances = new float[pointCount];
 		cachedPointTransformationsX = new float[pointCount]; 
 		cachedPointTransformationsY = new float[pointCount]; 
@@ -45,7 +45,7 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 	}
 	
 	private void clearCacheArrays(){
-		for(int i=0; i<map.getPointsCount(this); i++){
+		for(int i=0; i<map.getPointsCount(); i++){
 			pointDistances[i] 				= Float.MIN_VALUE;
 			cachedPointTransformationsX[i] 	= Float.MIN_VALUE;
 			cachedPointTransformationsY[i] 	= Float.MIN_VALUE;
@@ -60,11 +60,11 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 		MJ3DMatrix rotationMatrix = new MJ3DMatrix(orientation);
 
 		map.update(this);
-		MJ3DVector[] points = map.getPointsArray(this);
-		int[][] triadPoints = map.getTriadPointsArray(this);
-		int[] pointColors = map.getPointColorsArray(this);
+		MJ3DVector[] points = map.getPoints();
+		int[][] triadPoints = map.getTriadPointIndices();
+		int[] pointColors = map.getPointColors();
 		clearCacheArrays();
-		zBuffer.setBackgroundColor(map.getBackgroundColor(this));
+		zBuffer.setBackgroundColor(map.getBackgroundColor());
 		
 //		PerformanceTimer.stopInterimTime("Initial cleanup");
 		recalculatePointDistances(points);
@@ -110,7 +110,7 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 //					if(dummy.getGreen()==255)
 //						System.out.println("rgb: "+dummy.getRed()+" "+dummy.getGreen()+" "+dummy.getBlue());
 //				}
-				zBuffer.fillTriad(x, y, c, map.getBackgroundColor(this), distances, maxTriadDistance, map.isFoggy(), map.isWireframe());
+				zBuffer.fillTriad(x, y, c, map.getBackgroundColor(), distances, maxTriadDistance, map.isFoggy(), map.isWireframe());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

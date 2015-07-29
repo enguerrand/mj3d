@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.rochefort.mj3d.math.Quaternion;
 import de.rochefort.mj3d.objects.MJ3DObject;
 import de.rochefort.mj3d.objects.MJ3DObjectCompound;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
@@ -34,8 +33,12 @@ class MJ3DStaticMapImpl implements MJ3DMap {
 			if(obj instanceof MJ3DObjectCompound){
 				MJ3DObjectCompound comp = (MJ3DObjectCompound)obj;
 				objectsCompounds.add(comp);
-				triadList.addAll(comp.getTriads(null));
-				pointsList.addAll(comp.getPoints(null));
+				for(MJ3DTriad t : comp.getTriads()){
+					triadList.add(t);
+				}
+				for(MJ3DPoint3D p : comp.getPoints()){
+					pointsList.add(p);
+				}
 			} else if (obj instanceof MJ3DTriad){
 				MJ3DTriad triad = (MJ3DTriad)obj;
 				triadList.add(triad);
@@ -99,7 +102,7 @@ class MJ3DStaticMapImpl implements MJ3DMap {
 	}
 
 	@Override
-	public int getBackgroundColor(MJ3DViewingPosition viewingPosition) {
+	public int getBackgroundColor() {
 		return bg;
 	}
 
@@ -114,27 +117,27 @@ class MJ3DStaticMapImpl implements MJ3DMap {
 	}
 
 	@Override
-	public int getPointsCount(MJ3DViewingPosition viewingPosition) {
+	public int getPointsCount() {
 		return pointsArray.length;
 	}
 
 	@Override
-	public int getTriadCount(MJ3DViewingPosition viewingPosition) {
+	public int getTriadCount() {
 		return triadPointsArray.length;
 	}
 
 	@Override
-	public MJ3DPoint3D[] getPointsArray(MJ3DViewingPosition viewingPosition) {
+	public MJ3DPoint3D[] getPoints() {
 		return pointsArray;
 	}
 
 	@Override
-	public int[][] getTriadPointsArray(MJ3DViewingPosition viewingPosition) {
+	public int[][] getTriadPointIndices() {
 		return triadPointsArray;
 	}
 
 	@Override
-	public int[] getPointColorsArray(MJ3DViewingPosition viewingPosition) {
+	public int[] getPointColors() {
 		return pointColorsArray;
 	}
 
