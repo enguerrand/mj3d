@@ -11,32 +11,34 @@ public class PerformanceTimer {
 	private static Map<String, Long> times = new HashMap<String, Long>();
 	private static Long startTime;
 	private static Long lastStoppedTime;
-	private static final boolean active = false;
+	private static final boolean ACTIVE = true;
+	private static final boolean INTERIM_TIMES_ACTIVE = true;
 	public PerformanceTimer() {
 	}
 
 	public static void start(){
+		if(!ACTIVE) return;
 		startTime = System.currentTimeMillis();
 		lastStoppedTime = System.currentTimeMillis();
 		times.clear();
 	}
 	
 	public static void stopInterimTime(String refName){
-		if(active){
-			long now = System.currentTimeMillis();
-			long delta = now - lastStoppedTime;
-			if(times.containsKey(refName)){
-				delta += times.get(refName);
-			}
-			times.put(refName, delta);
-			lastStoppedTime = now;
+		if(!INTERIM_TIMES_ACTIVE) return;
+		long now = System.currentTimeMillis();
+		long delta = now - lastStoppedTime;
+		if(times.containsKey(refName)){
+			delta += times.get(refName);
 		}
+		times.put(refName, delta);
+		lastStoppedTime = now;
 	}
 	
 	public static void stopAndPrintReport(){
+		if(!ACTIVE) return;
 		long now = System.currentTimeMillis();
 		long delta = now - startTime;
-		System.out.println("Total Time used: "+delta+" ms");
+		System.out.println("== Total Time used: "+delta+" ms ==");
 		List<String> keyset = new ArrayList<String>(times.keySet());
 		Collections.sort(keyset, new Comparator<String>() {
 
@@ -49,14 +51,13 @@ public class PerformanceTimer {
 				return 0;
 			}
 		});
-		
-		if(active){
-			for(String ref : keyset){
-				long timeUsed = times.get(ref);
-				System.out.println("Time used for "+ref+": "+timeUsed+" ms");
-				delta -=timeUsed;
-			}
-			System.out.println("Time lost: "+delta+" ms");
+		if(!INTERIM_TIMES_ACTIVE) return;
+		for(String ref : keyset){
+			long timeUsed = times.get(ref);
+			System.out.println("  -> "+ref+": "+timeUsed+" ms");
+			delta -=timeUsed;
 		}
+		System.out.println("  -> Time not recorded: "+delta+" ms");
+		System.out.println("");
 	}
 }
