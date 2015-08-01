@@ -7,6 +7,7 @@ import de.rochefort.mj3d.math.randomness.PerlinNoiseGenerator;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
+import de.rochefort.mj3d.util.PerformanceTimer;
 import de.rochefort.mj3d.view.ColorBlender;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
@@ -22,7 +23,10 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	private MJ3DPoint3D[] pointBuffer;
 	private MJ3DPoint3D[][] pointsMatrix;
 	private MJ3DPoint3D[][] pointsMatrixBuffer;
-	private MJ3DViewingPosition lastViewingPosition;
+	private float lastPositionX;
+	private float lastPositionY;
+	private float lastPositionZ;
+	private MJ3DViewingPosition viewingPosition;
 	private final PerlinNoiseGenerator pnGen;
 	private final int width;
 	private final float visibility;
@@ -37,7 +41,10 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	public MJ3DInfiniteSimplexNoiseTerrain(MJ3DViewingPosition initialViewingPosition, long seed, float visibility, float triadSize, float baseFrequency, float baseAmplitude, float persistence, float seaLevel, float ambientLight, ColorScheme colorScheme) {
 		super();
 		this.seed = seed;
-		this.lastViewingPosition = initialViewingPosition;
+		this.viewingPosition = initialViewingPosition;
+		this.lastPositionX = initialViewingPosition.getXPos();
+		this.lastPositionY = initialViewingPosition.getYPos();
+		this.lastPositionZ = initialViewingPosition.getZPos();
 		this.seaLevel = seaLevel;
 		this.colorShade = colorScheme.getEarthColor();
 		this.seaColorShallow = colorScheme.getSeaColorShallow().getRGB();
@@ -61,17 +68,22 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 
 	@Override
 	public void create(){
-		create(this.lastViewingPosition);
+		createPoints(this.viewingPosition);
 		createTriads();
 	}
 	
 	@Override
 	public void update(MJ3DViewingPosition newPosition){
-		create(newPosition);
+		PerformanceTimer.stopInterimTime("Calling update method");
+		updatePoints(newPosition);
 		createTriads();
+		PerformanceTimer.stopInterimTime("Create triads");
+		this.lastPositionX = newPosition.getXPos();
+		this.lastPositionY = newPosition.getYPos();
+		this.lastPositionZ = newPosition.getZPos();
 	}
 	
-	public void create(MJ3DViewingPosition position){
+	private void createPoints(MJ3DViewingPosition position){
 		maxZ = Float.MIN_VALUE;
 		float xMin = position.getXPos() - visibility;
 		float yMin = position.getYPos() - visibility;
@@ -90,7 +102,55 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 		}
 	}
 	
-
+	private void updatePoints(MJ3DViewingPosition position){
+		float xMin = position.getXPos() - visibility;
+		float yMin = position.getYPos() - visibility;
+		//TODO consider Z
+		float deltaX = - position.getXPos() + lastPositionX;
+		float deltaY = - position.getYPos() + lastPositionY;
+		int deltaXCols = (int)(deltaX / triadSize);
+		int deltaYCols = (int)(deltaY / triadSize);
+		for(int i=0; i<width; i++){
+			System.arraycopy(pointsMatrix[i], 0, pointsMatrixBuffer[i], 0, width);
+		}
+		int xIndexMin = Math.max(0, deltaXCols + 1);
+		int yIndexMin = Math.max(0, deltaYCols + 1);
+		int xIndexMax = Math.min(width, width+deltaXCols);
+		int yIndexMax = Math.min(width, width+deltaYCols);
+		for(int xIndex = 0; xIndex < width; xIndex++){
+			for(int yIndex = 0; yIndex < width; yIndex++){
+				float x = xMin + xIndex * triadSize;
+				float y = yMin + yIndex * triadSize;
+				float z;
+				if(xIndex<=xIndexMin || xIndex >= xIndexMax || yIndex <= yIndexMin || yIndex >= yIndexMax) {
+					z = (pnGen.perlinNoise2D(x, y, 10, persistence, baseFrequency, baseAmplitude));
+				} else {
+					try {
+						z = pointsMatrixBuffer[xIndex-deltaXCols][yIndex-deltaYCols].getZ();
+					} catch (Exception e) {
+						z=0;
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				MJ3DPoint3D pt = new MJ3DPoint3D(x, y, z);
+				pt.setTerrainPointPosition(this, xIndex, yIndex);
+				pointsMatrix[xIndex][yIndex] = pt;
+			}
+		}
+		PerformanceTimer.stopInterimTime("Compute point heights");
+		maxZ = Float.MIN_VALUE;
+		for(int xIndex = 0; xIndex < width; xIndex++){
+			for(int yIndex = 0; yIndex < width; yIndex++){
+				MJ3DPoint3D pt = pointsMatrix[xIndex][yIndex];
+				points[xIndex + yIndex*width] = pt;
+				pt.setMapIndex(xIndex + yIndex*width);
+				maxZ = Math.max(maxZ, pt.getZ());
+			}
+		}
+		PerformanceTimer.stopInterimTime("Index points");
+	}
+	
 	private void createTriads() {
 		int triadIndex = 0;
 		float illuminationFactor = (1f - ambientLight) *0.5f;

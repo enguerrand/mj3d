@@ -60,6 +60,7 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 		MJ3DMatrix rotationMatrix = new MJ3DMatrix(orientation);
 
 		map.update(this);
+		PerformanceTimer.stopInterimTime("exit update method");
 		MJ3DVector[] points = map.getPoints();
 		int[][] triadPoints = map.getTriadPointIndices();
 		int[] pointColors = map.getPointColors();
@@ -118,6 +119,7 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 			}
 //			PerformanceTimer.stopInterimTime("Paint z-buffer");
 		}
+		PerformanceTimer.stopInterimTime("3d calculations and painting image");
 		PerformanceTimer.stopAndPrintReport();
 	}
 	
