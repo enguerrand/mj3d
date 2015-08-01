@@ -44,6 +44,13 @@ public class ColorScheme {
 				new Color(70, 70, 80));
 	}
 	
+	public static ColorScheme newDesertScheme(){
+		return new ColorScheme(
+				new Color(232, 205, 87), 
+				new Color(232, 205, 87), 
+				new Color(232, 205, 87));
+	}
+	
 	public static ColorScheme newVolcanoColorScheme(){
 		return new ColorScheme(
 				new Color(50, 50, 50), 
