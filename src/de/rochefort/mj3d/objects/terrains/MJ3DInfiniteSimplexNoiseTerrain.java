@@ -63,7 +63,7 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 		int triadCount = (width-1)*(width-1)*2;
 		this.visibleTriads = new MJ3DTriad[triadCount];
 		this.visibleTriadBuffer = new MJ3DTriad[triadCount];
-		this.pnGen = new PerlinNoiseGenerator(this.seed, 3, 1f);
+		this.pnGen = new PerlinNoiseGenerator(this.seed, (short) 3, 1f);
 	}
 
 	@Override

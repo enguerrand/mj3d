@@ -131,7 +131,7 @@ public class MJ3DSimplexNoiseTerrain extends MJ3DTerrain {
 	 * P0 P1 P2 P3
 	 */
 	private void createTerrain() {
-		PerlinNoiseGenerator g = new PerlinNoiseGenerator(this.seed, 3, 1f);
+		PerlinNoiseGenerator g = new PerlinNoiseGenerator(this.seed, (short) 3, 1f);
 		points = new MJ3DPoint3D[width*width];
 		for(int xIndex = 0; xIndex < width; xIndex++){
 			for(int yIndex = 0; yIndex < width; yIndex++){

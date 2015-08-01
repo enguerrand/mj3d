@@ -39,7 +39,7 @@ public class MJ3DView extends JPanel{
 		currentHeight = getVisibleRect().height;
 		ey=-currentWidth/2f;
 		ez=-currentHeight/2f;
-		ex=-0.7f*(ez+ey);  //FIXME only for testing. 
+		ex=-0.75f*(ez+ey); 
 	}
 
 	protected void paintComponent(Graphics g) {

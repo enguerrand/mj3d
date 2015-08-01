@@ -1,23 +1,29 @@
 package de.rochefort.mj3d.math.randomness;
 
+import java.util.Random;
+
 
 public class PerlinNoiseGenerator {
-	private final OpenSimplexNoise osn;
+	private final OpenSimplexNoise[] osn;
 
-	public PerlinNoiseGenerator(long seed, int octavesCount, float persistence) {
-		this.osn = new OpenSimplexNoise(seed);
+	public PerlinNoiseGenerator(long seed, short octavesCount, float persistence) {
+		Random r = new Random(seed);
+		this.osn = new OpenSimplexNoise[octavesCount];
+		for(int i=0; i<octavesCount; i++){
+			this.osn[i] = new OpenSimplexNoise(r.nextLong());
+		}
 	}
 
-	private float noise(float x, float y) {
-		return (float) osn.eval(x, y);
+	private float noise(float x, float y, short octave) {
+		return (float) osn[octave].eval(x, y);
 	}
 
-	private float smoothedNoise(int x, int y) {
-		float corners = (noise(x - 1, y - 1) + noise(x + 1, y - 1)
-				+ noise(x - 1, y + 1) + noise(x + 1, y + 1)) / 16f;
-		float sides = (noise(x - 1, y) + noise(x + 1, y) + noise(x, y - 1) + noise(
-				x, y + 1)) / 8f;
-		float center = noise(x, y) / 4f;
+	private float smoothedNoise(int x, int y, short octave) {
+		float corners = (noise(x - 1, y - 1, octave) + noise(x + 1, y - 1, octave)
+				+ noise(x - 1, y + 1, octave) + noise(x + 1, y + 1, octave)) / 16f;
+		float sides = (noise(x - 1, y, octave) + noise(x + 1, y, octave) + noise(x, y - 1, octave) + noise(
+				x, y + 1, octave)) / 8f;
+		float center = noise(x, y, octave) / 4f;
 		return corners + sides + center;
 	}
 
@@ -32,10 +38,10 @@ public class PerlinNoiseGenerator {
 		int integer_Y = (int) y;
 		float fractional_Y = y - integer_Y;
 
-		float v1 = smoothedNoise(integer_X, integer_Y);
-		float v2 = smoothedNoise(integer_X + 1, integer_Y);
-		float v3 = smoothedNoise(integer_X, integer_Y + 1);
-		float v4 = smoothedNoise(integer_X + 1, integer_Y + 1);
+		float v1 = smoothedNoise(integer_X, integer_Y, octave);
+		float v2 = smoothedNoise(integer_X + 1, integer_Y, octave);
+		float v3 = smoothedNoise(integer_X, integer_Y + 1, octave);
+		float v4 = smoothedNoise(integer_X + 1, integer_Y + 1, octave);
 
 		float i1 = linearInterpolate(v1, v2, fractional_X);
 		float i2 = linearInterpolate(v3, v4, fractional_X);
