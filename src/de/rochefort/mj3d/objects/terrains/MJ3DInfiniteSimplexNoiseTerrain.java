@@ -126,6 +126,8 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 					z = (pnGen.perlinNoise2D(x, y, 10, persistence, baseFrequency, baseAmplitude));
 				} else {
 					try {
+						x = pointsMatrixBuffer[xIndex-deltaXCols][yIndex-deltaYCols].getX();
+						y = pointsMatrixBuffer[xIndex-deltaXCols][yIndex-deltaYCols].getY();
 						z = pointsMatrixBuffer[xIndex-deltaXCols][yIndex-deltaYCols].getZ();
 					} catch (Exception e) {
 						z=0;
