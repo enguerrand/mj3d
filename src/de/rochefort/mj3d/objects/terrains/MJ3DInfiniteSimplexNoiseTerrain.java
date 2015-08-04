@@ -3,7 +3,8 @@ package de.rochefort.mj3d.objects.terrains;
 import java.awt.Color;
 
 import de.rochefort.mj3d.math.MJ3DVector;
-import de.rochefort.mj3d.math.randomness.PerlinNoiseGenerator;
+import de.rochefort.mj3d.math.randomness.FractalNoiseConfig;
+import de.rochefort.mj3d.math.randomness.FractalNoiseGenerator;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
@@ -26,18 +27,15 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	private float lastRefX;
 	private float lastRefY;
 	private MJ3DViewingPosition viewingPosition;
-	private final PerlinNoiseGenerator pnGen;
+	private final FractalNoiseGenerator noiseGen;
 	private final int width;
 	private final float visibility;
 	private final float triadSize;
-	private final float baseFrequency;
-	private final float baseAmplitude;
-	private final float persistence;
 	private float seaLevel;
 	private float ambientLight;
 	private float maxZ = Float.MIN_VALUE;
 
-	public MJ3DInfiniteSimplexNoiseTerrain(MJ3DViewingPosition initialViewingPosition, long seed, float visibility, float triadSize, float baseFrequency, float baseAmplitude, float persistence, float seaLevel, float ambientLight, ColorScheme colorScheme) {
+	public MJ3DInfiniteSimplexNoiseTerrain(MJ3DViewingPosition initialViewingPosition, long seed, float visibility, float triadSize, FractalNoiseConfig fractalNoiseConfig, float seaLevel, float ambientLight, ColorScheme colorScheme) {
 		super();
 		this.seed = seed;
 		this.viewingPosition = initialViewingPosition;
@@ -49,9 +47,6 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 		this.seaColorDeep = colorScheme.getSeaColorDeep().getRGB();
 		this.ambientLight = ambientLight;
 		this.triadSize = triadSize;
-		this.baseFrequency = baseFrequency;
-		this.baseAmplitude = baseAmplitude;
-		this.persistence = persistence;
 		this.visibility = visibility;
 		this.width = (int)(2*visibility/triadSize)+1;
 		this.points = new MJ3DPoint3D[width*width];
@@ -61,7 +56,7 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 		int triadCount = (width-1)*(width-1)*2;
 		this.visibleTriads = new MJ3DTriad[triadCount];
 		this.visibleTriadBuffer = new MJ3DTriad[triadCount];
-		this.pnGen = new PerlinNoiseGenerator(this.seed, (short) 3, 1f);
+		this.noiseGen = new FractalNoiseGenerator(this.seed, fractalNoiseConfig);
 	}
 
 	@Override
@@ -86,7 +81,7 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 			for(int yIndex = 0; yIndex < width; yIndex++){
 				float x = xMin + xIndex * triadSize;
 				float y = yMin + yIndex * triadSize;
-				float z = (pnGen.perlinNoise2D(x, y, 10, persistence, baseFrequency, baseAmplitude));
+				float z = (noiseGen.fractalNoise2D(x, y));
 				MJ3DPoint3D pt = new MJ3DPoint3D(x, y, z);
 				pt.setTerrainPointPosition(this, xIndex, yIndex);
 				pointsMatrix[xIndex][yIndex] = pt;
@@ -123,7 +118,7 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 				float y = yMin + yIndex * triadSize;
 				float z;
 				if(xIndex<=xIndexMin || xIndex >= xIndexMax || yIndex <= yIndexMin || yIndex >= yIndexMax) {
-					z = (pnGen.perlinNoise2D(x, y, 10, persistence, baseFrequency, baseAmplitude));
+					z = (noiseGen.fractalNoise2D(x, y));
 				} else {
 					try {
 						x = pointsMatrixBuffer[xIndex-deltaXCols][yIndex-deltaYCols].getX();
