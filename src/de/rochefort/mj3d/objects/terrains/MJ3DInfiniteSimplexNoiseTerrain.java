@@ -23,9 +23,8 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	private MJ3DPoint3D[] pointBuffer;
 	private MJ3DPoint3D[][] pointsMatrix;
 	private MJ3DPoint3D[][] pointsMatrixBuffer;
-	private float lastPositionX;
-	private float lastPositionY;
-	private float lastPositionZ;
+	private float lastRefX;
+	private float lastRefY;
 	private MJ3DViewingPosition viewingPosition;
 	private final PerlinNoiseGenerator pnGen;
 	private final int width;
@@ -42,9 +41,8 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 		super();
 		this.seed = seed;
 		this.viewingPosition = initialViewingPosition;
-		this.lastPositionX = initialViewingPosition.getXPos();
-		this.lastPositionY = initialViewingPosition.getYPos();
-		this.lastPositionZ = initialViewingPosition.getZPos();
+		this.lastRefX = initialViewingPosition.getXPos();
+		this.lastRefY = initialViewingPosition.getYPos();
 		this.seaLevel = seaLevel;
 		this.colorShade = colorScheme.getEarthColor();
 		this.seaColorShallow = colorScheme.getSeaColorShallow().getRGB();
@@ -78,9 +76,6 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 		updatePoints(newPosition);
 		createTriads();
 		PerformanceTimer.stopInterimTime("Create triads");
-		this.lastPositionX = newPosition.getXPos();
-		this.lastPositionY = newPosition.getYPos();
-		this.lastPositionZ = newPosition.getZPos();
 	}
 	
 	private void createPoints(MJ3DViewingPosition position){
@@ -103,11 +98,16 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	}
 	
 	private void updatePoints(MJ3DViewingPosition position){
-		float xMin = position.getXPos() - visibility;
-		float yMin = position.getYPos() - visibility;
+		float refX = position.getXPos() - position.getXPos() % triadSize; 
+		float refY = position.getYPos() - position.getYPos() % triadSize; 
+		float xMin = refX - visibility;
+		float yMin = refY - visibility;
 		//TODO consider Z
-		float deltaX = - position.getXPos() + lastPositionX;
-		float deltaY = - position.getYPos() + lastPositionY;
+		float deltaX = - position.getXPos() + lastRefX;
+		float deltaY = - position.getYPos() + lastRefY;
+
+		this.lastRefX = refX;
+		this.lastRefY = refY;
 		int deltaXCols = (int)(deltaX / triadSize);
 		int deltaYCols = (int)(deltaY / triadSize);
 		for(int i=0; i<width; i++){
