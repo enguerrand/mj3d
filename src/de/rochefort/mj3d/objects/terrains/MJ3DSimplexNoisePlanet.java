@@ -12,6 +12,7 @@ import de.rochefort.mj3d.math.randomness.FractalNoiseGenerator;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
+import de.rochefort.mj3d.view.ColorBlender;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
@@ -49,28 +50,11 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 		this.triadSize = triadSize;
 		this.visibility = visibility;
 		this.width = (int)(2*visibility/triadSize)+1;
-		this.points = new MJ3DPoint3D[width*width];
-		this.pointBuffer = new MJ3DPoint3D[width*width];
-		this.pointsMatrix = new MJ3DPoint3D[width][width];
-		this.pointsMatrixBuffer = new MJ3DPoint3D[width][width];
-		int triadCount = (width-1)*(width-1)*2;
-		this.visibleTriads = new MJ3DTriad[triadCount];
-		this.visibleTriadBuffer = new MJ3DTriad[triadCount];
 		this.noiseGen = new FractalNoiseGenerator(this.seed, fractalNoiseConfig);
 	}
 
 	@Override
 	public void create(){
-		createPoints(this.viewingPosition);
-		createTriads();
-	}
-	
-	@Override
-	public void update(MJ3DViewingPosition newPosition){
-		create();
-	}
-	
-	private void createPoints(MJ3DViewingPosition position){
 		List<MJ3DPoint3D> pointsList = new LinkedList<MJ3DPoint3D>();
 		List<MJ3DTriad> triadList = new LinkedList<MJ3DTriad>();
 		float deltaAngle = planetBaseShape.getAngle(triadSize);
@@ -97,19 +81,21 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 			points[tmpPtIndex] = pointsList.get(tmpPtIndex);
 			points[tmpPtIndex].setMapIndex(tmpPtIndex);
 		}
-		
+
+		float illuminationFactor = (1f - ambientLight) *0.5f;
 		for(int tmpTriadIndex = 0; tmpTriadIndex < this.visibleTriads.length; tmpTriadIndex++){
 			visibleTriads[tmpTriadIndex] = triadList.get(tmpTriadIndex);
+			visibleTriads[tmpTriadIndex].updateSurfaceNormal();
+			float lighting = ambientLight - illuminationFactor * (MJ3DVector.dotProduct(vectorOfLight, visibleTriads[tmpTriadIndex].getNormal())-1);
+			visibleTriads[tmpTriadIndex].setColor(ColorBlender.scaleColor(colorShade, lighting));
 		}
-		int sdad = 0;
-		sdad++;
 	}
 	
-	private void createTriads() {
-
-
+	@Override
+	public void update(MJ3DViewingPosition newPosition){
+		create();
 	}
-
+	
 	@Override
 	public MJ3DTriad[] getTriads() {
 		return visibleTriads;
