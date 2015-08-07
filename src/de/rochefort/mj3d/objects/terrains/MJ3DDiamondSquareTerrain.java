@@ -16,7 +16,6 @@ import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
 import de.rochefort.mj3d.view.ColorBlender;
-import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 
@@ -453,7 +452,7 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	}
 
 	@Override
-	public void update(MJ3DViewingPosition viewingPosition) {
+	public void update() {
 		
 	}
 }

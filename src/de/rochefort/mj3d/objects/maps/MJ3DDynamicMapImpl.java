@@ -18,7 +18,7 @@ public class MJ3DDynamicMapImpl implements MJ3DMap{
 	}
 
 	public void update(MJ3DViewingPosition newPosition){
-		terrain.update(newPosition);
+		terrain.update();
 	}
 	
 	@Override

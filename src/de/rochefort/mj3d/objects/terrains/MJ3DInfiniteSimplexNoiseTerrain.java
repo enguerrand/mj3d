@@ -66,17 +66,17 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	}
 	
 	@Override
-	public void update(MJ3DViewingPosition newPosition){
+	public void update(){
 		PerformanceTimer.stopInterimTime("Calling update method");
-		updatePoints(newPosition);
+		updatePoints();
 		createTriads();
 		PerformanceTimer.stopInterimTime("Create triads");
 	}
 	
 	private void createPoints(MJ3DViewingPosition position){
 		maxZ = Float.MIN_VALUE;
-		float xMin = position.getXPos() - visibility;
-		float yMin = position.getYPos() - visibility;
+		float xMin = viewingPosition.getXPos() - visibility;
+		float yMin = viewingPosition.getYPos() - visibility;
 		for(int xIndex = 0; xIndex < width; xIndex++){
 			for(int yIndex = 0; yIndex < width; yIndex++){
 				float x = xMin + xIndex * triadSize;
@@ -92,14 +92,14 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 		}
 	}
 	
-	private void updatePoints(MJ3DViewingPosition position){
-		float refX = position.getXPos() - position.getXPos() % triadSize; 
-		float refY = position.getYPos() - position.getYPos() % triadSize; 
+	private void updatePoints(){
+		float refX = viewingPosition.getXPos() - viewingPosition.getXPos() % triadSize; 
+		float refY = viewingPosition.getYPos() - viewingPosition.getYPos() % triadSize; 
 		float xMin = refX - visibility;
 		float yMin = refY - visibility;
 		//TODO consider Z
-		float deltaX = - position.getXPos() + lastRefX;
-		float deltaY = - position.getYPos() + lastRefY;
+		float deltaX = - viewingPosition.getXPos() + lastRefX;
+		float deltaY = - viewingPosition.getYPos() + lastRefY;
 
 		this.lastRefX = refX;
 		this.lastRefY = refY;

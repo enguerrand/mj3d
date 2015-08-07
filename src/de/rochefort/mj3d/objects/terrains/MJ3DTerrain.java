@@ -3,7 +3,6 @@ package de.rochefort.mj3d.objects.terrains;
 import de.rochefort.mj3d.objects.MJ3DObjectCompound;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
-import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 public abstract class MJ3DTerrain implements MJ3DObjectCompound {
 
@@ -34,6 +33,6 @@ public abstract class MJ3DTerrain implements MJ3DObjectCompound {
 	
 	public abstract void create();
 
-	public abstract void update(MJ3DViewingPosition viewingPosition);
+	public abstract void update();
 
 }

@@ -92,7 +92,7 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 	}
 	
 	@Override
-	public void update(MJ3DViewingPosition newPosition){
+	public void update(){
 		create();
 	}
 	
