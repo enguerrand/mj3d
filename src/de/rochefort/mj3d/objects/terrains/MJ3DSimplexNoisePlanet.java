@@ -47,7 +47,8 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 		this.seaColorShallow = colorScheme.getSeaColorShallow().getRGB();
 		this.seaColorDeep = colorScheme.getSeaColorDeep().getRGB();
 		this.ambientLight = ambientLight;
-		this.triadSize = triadSize;
+		int segmentCount = Math.round(this.planetBaseShape.getCirumference() / triadSize);
+		this.triadSize = this.planetBaseShape.getCirumference() / segmentCount;
 		this.visibility = visibility;
 		this.width = (int)(2*visibility/triadSize)+1;
 		this.noiseGen = new FractalNoiseGenerator(this.seed, fractalNoiseConfig);
@@ -60,8 +61,10 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 		float deltaAngle = planetBaseShape.getAngle(triadSize);
 		
 		for (float latitudeRad = -Defines.PI*.5f; latitudeRad < Defines.PI * 0.5f; latitudeRad += deltaAngle) {
-			pointsList.add(planetBaseShape.getPoint(latitudeRad, 0));
-			pointsList.add(planetBaseShape.getPoint(latitudeRad + deltaAngle, 0));
+			MJ3DPoint3D startingPoint1 = planetBaseShape.getPoint(latitudeRad, 0);
+			MJ3DPoint3D startingPoint2 = planetBaseShape.getPoint(latitudeRad + deltaAngle, 0);
+			pointsList.add(startingPoint1);
+			pointsList.add(startingPoint2);
 			for (float longitude = deltaAngle; longitude <= 2 * Defines.PI; longitude += deltaAngle) {
 				pointsList.add(planetBaseShape.getPoint(latitudeRad, longitude));
 				pointsList.add(planetBaseShape.getPoint(latitudeRad + deltaAngle, longitude));
@@ -73,6 +76,13 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 				}
 				triadList.add(new MJ3DTriad(pts, Color.RED));
 			} 
+			MJ3DPoint3D[] pts = new MJ3DPoint3D[3];
+			int tmpIndex = 0;
+			pts[tmpIndex++] = startingPoint1;
+			pts[tmpIndex++] = startingPoint2;
+			pts[tmpIndex++] = pointsList.get(pointsList.size()-1);
+			triadList.add(new MJ3DTriad(pts, Color.RED));
+			
 		}
 		this.points = new MJ3DPoint3D[pointsList.size()];		
 		this.visibleTriads = new MJ3DTriad[triadList.size()];
