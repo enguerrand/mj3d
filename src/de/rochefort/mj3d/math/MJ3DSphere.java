@@ -13,9 +13,14 @@ public class MJ3DSphere {
 	}
 	
 	public MJ3DPoint3D getPoint(float latitudeRad, float longitudeRad){
-		float x = center.getX() + (float) (radius * Math.cos(latitudeRad) * Math.sin(longitudeRad));
-		float y = center.getY() + (float) (radius * Math.cos(latitudeRad) * Math.sin(longitudeRad + 0.5f*Defines.PI));
-		float z = center.getZ() + (float) (radius * Math.sin(latitudeRad));
+		return getPoint(latitudeRad, longitudeRad, 0f);
+	}
+	
+	public MJ3DPoint3D getPoint(float latitudeRad, float longitudeRad, float radialOffset){
+		float correctedRadius = radius + radialOffset;
+		float x = center.getX() + (float) (correctedRadius * Math.cos(latitudeRad) * Math.sin(longitudeRad));
+		float y = center.getY() + (float) (correctedRadius * Math.cos(latitudeRad) * Math.sin(longitudeRad + 0.5f*Defines.PI));
+		float z = center.getZ() + (float) (correctedRadius * Math.sin(latitudeRad));
 		return new MJ3DPoint3D(x, y, z);
 	}
 	
