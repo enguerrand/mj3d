@@ -12,7 +12,7 @@ public class PerformanceTimer {
 	private static Long startTime;
 	private static Long lastStoppedTime;
 	private static final boolean ACTIVE = true;
-	private static final boolean INTERIM_TIMES_ACTIVE = true;
+	private static final boolean INTERIM_TIMES_ACTIVE = false;
 	public PerformanceTimer() {
 	}
 
