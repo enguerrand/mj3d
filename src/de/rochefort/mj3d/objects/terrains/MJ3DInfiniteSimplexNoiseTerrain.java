@@ -224,7 +224,6 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	}
 
 	@Override
-	// TODO Untested!
 	public void replace(MJ3DPoint3D pointToReplace, MJ3DPoint3D replacement) {
 		throw new UnsupportedOperationException("Replacement is not supported in dynamic map! (And should not be needed either!)");
 	}

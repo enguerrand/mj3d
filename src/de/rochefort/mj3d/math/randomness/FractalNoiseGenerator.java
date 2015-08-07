@@ -24,7 +24,15 @@ public class FractalNoiseGenerator {
 	public float fractalNoise2D(float x, float y) {
 		float result = 0;
 		for (int oct = 0; oct < this.osn.length; oct++) {
-			result += (float) (this.osn[oct].eval(x * this.scalingFactors[oct], y * this.scalingFactors[oct], 0f) * this.amplitudes[oct]);
+			result += (float) (this.osn[oct].eval(x * this.scalingFactors[oct], y * this.scalingFactors[oct]) * this.amplitudes[oct]);
+		}
+		return result;
+	}
+	
+	public float fractalNoise3D(float x, float y, float z) {
+		float result = 0;
+		for (int oct = 0; oct < this.osn.length; oct++) {
+			result += (float) (this.osn[oct].eval(x * this.scalingFactors[oct], y * this.scalingFactors[oct], z * this.scalingFactors[oct]) * this.amplitudes[oct]);
 		}
 		return result;
 	}
