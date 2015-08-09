@@ -1,6 +1,7 @@
 package de.rochefort.mj3d.objects.terrains;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -9,6 +10,8 @@ import de.rochefort.mj3d.math.MJ3DSphere;
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.math.randomness.FractalNoiseConfig;
 import de.rochefort.mj3d.math.randomness.FractalNoiseGenerator;
+import de.rochefort.mj3d.objects.meshing.MJ3DPointsRow;
+import de.rochefort.mj3d.objects.meshing.PointsProducer;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
@@ -53,53 +56,73 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 		this.width = (int)(2*visibility/triadSize)+1;
 		this.noiseGen = new FractalNoiseGenerator(this.seed, fractalNoiseConfig);
 	}
-
+	
 	@Override
 	public void create(){
-		List<MJ3DPoint3D> pointsList = new LinkedList<MJ3DPoint3D>();
-		List<MJ3DTriad> triadList = new LinkedList<MJ3DTriad>();
 		float deltaAngle = planetBaseShape.getAngle(triadSize);
 		
-		for (float latitudeRad = -Defines.PI*.5f; latitudeRad < Defines.PI * 0.5f; latitudeRad += deltaAngle) {
-			MJ3DPoint3D startingPoint1 = planetBaseShape.getPoint(latitudeRad, 0);
-			MJ3DPoint3D startingPoint2 = planetBaseShape.getPoint(latitudeRad + deltaAngle, 0);
-			pointsList.add(startingPoint1);
-			pointsList.add(startingPoint2);
-			for (float longitude = deltaAngle; longitude <= 2 * Defines.PI; longitude += deltaAngle) {
-				pointsList.add(planetBaseShape.getPoint(latitudeRad, longitude));
-				pointsList.add(planetBaseShape.getPoint(latitudeRad + deltaAngle, longitude));
-
-				MJ3DPoint3D[] pts = new MJ3DPoint3D[3];
-				int tmpIndex = 0;
-				for (int i = pointsList.size() - 3; i < pointsList.size(); i++) {
-					pts[tmpIndex++] = pointsList.get(i);
+		List<MJ3DPointsRow> rows = new ArrayList<>();
+		float maxLat = Defines.PI * 0.5f;
+		for (float latitudeRad = -Defines.PI * 0.5f; latitudeRad <= maxLat; latitudeRad = Math.min(latitudeRad+deltaAngle, maxLat)) {
+			float circumference = planetBaseShape.getCirumference(latitudeRad);
+			final float lat = latitudeRad;
+			PointsProducer p = new PointsProducer() {
+				@Override
+				public MJ3DPoint3D create(float relativeLengthOnRow) {
+					MJ3DPoint3D pt;
+					float longitude;
+					if(circumference < Defines.ALMOST_ZERO){
+						longitude = 0f;
+					}
+					else {
+						longitude = relativeLengthOnRow * 2 * Defines.PI;
+					}
+					pt = planetBaseShape.getPoint(lat, longitude);
+					float offset = noiseGen.fractalNoise3D(pt.getX(), pt.getY(), pt.getZ());
+					return planetBaseShape.getPoint(lat, longitude, offset);
 				}
-				triadList.add(new MJ3DTriad(pts, Color.RED));
-			} 
-			MJ3DPoint3D[] pts = new MJ3DPoint3D[3];
-			int tmpIndex = 0;
-			pts[tmpIndex++] = startingPoint1;
-			pts[tmpIndex++] = startingPoint2;
-			pts[tmpIndex++] = pointsList.get(pointsList.size()-1);
-			triadList.add(new MJ3DTriad(pts, Color.RED));
-			
+			};
+			MJ3DPointsRow row = new MJ3DPointsRow(triadSize, triadSize, circumference, p);
+			rows.add(row);
+			if(latitudeRad == maxLat){
+				break;
+			}
 		}
-		this.points = new MJ3DPoint3D[pointsList.size()];		
-		this.visibleTriads = new MJ3DTriad[triadList.size()];
 		
+		this.points = MJ3DPointsRow.getPoints(rows);
 		for(int tmpPtIndex = 0; tmpPtIndex < this.points.length; tmpPtIndex++){
-			points[tmpPtIndex] = pointsList.get(tmpPtIndex);
 			points[tmpPtIndex].setMapIndex(tmpPtIndex);
 		}
-
-		float illuminationFactor = (1f - ambientLight) *0.5f;
-		for(int tmpTriadIndex = 0; tmpTriadIndex < this.visibleTriads.length; tmpTriadIndex++){
-			visibleTriads[tmpTriadIndex] = triadList.get(tmpTriadIndex);
-			visibleTriads[tmpTriadIndex].updateSurfaceNormal();
-			float lighting = ambientLight - illuminationFactor * (MJ3DVector.dotProduct(vectorOfLight, visibleTriads[tmpTriadIndex].getNormal())-1);
-			visibleTriads[tmpTriadIndex].setColor(ColorBlender.scaleColor(colorShade, lighting));
-		}
+		
+		this.visibleTriads = MJ3DPointsRow.getTriads(rows, true, colorShade, ambientLight, vectorOfLight);
 	}
+
+	
+//	// Test case for plane
+//	@Override
+//	public void create(){
+//		float delta = 50;
+//		
+//		List<MJ3DPointsRow> rows = new ArrayList<>();
+//		for (int i=0; i<10; i++) {
+//			float x = delta * i;
+//			PointsProducer p = new PointsProducer() {
+//				@Override
+//				public MJ3DPoint3D create(float relativeLengthOnRow) {
+//					return new MJ3DPoint3D(x, relativeLengthOnRow, 0f);
+//				}
+//			};
+//			MJ3DPointsRow row = new MJ3DPointsRow(delta, delta, 10*delta, p);
+//			rows.add(row);
+//		}
+//		
+//		this.points = MJ3DPointsRow.getPoints(rows);
+//		for(int tmpPtIndex = 0; tmpPtIndex < this.points.length; tmpPtIndex++){
+//			points[tmpPtIndex].setMapIndex(tmpPtIndex);
+//		}
+//		
+//		this.visibleTriads = MJ3DPointsRow.getTriads(rows, colorShade, ambientLight, vectorOfLight);
+//	}
 	
 	@Override
 	public void update(){

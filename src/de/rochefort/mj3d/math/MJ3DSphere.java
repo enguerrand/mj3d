@@ -29,7 +29,11 @@ public class MJ3DSphere {
 	}
 	
 	public float getCirumference(float latitudeRad){
-		return aequatorialCircumference * (float)Math.cos(latitudeRad);
+		float cos = (float)Math.cos(latitudeRad);
+		if(cos < 0){
+			cos = 0f;
+		}
+		return aequatorialCircumference * cos;
 	}
 	
 	public float getAngle(float segmentLength){
