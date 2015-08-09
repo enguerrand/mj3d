@@ -68,9 +68,16 @@ public class MJ3DTriad implements MJ3DObject {
 	}
 	
 	public void updateSurfaceNormal(){
+		updateSurfaceNormal(false);
+	}
+	
+	public void updateSurfaceNormal(boolean reverseSurfaceNormal){
 		MJ3DVector vect1 = new MJ3DVector(points[1].getX()-points[0].getX(), points[1].getY()-points[0].getY(), points[1].getZ()-points[0].getZ());
 		MJ3DVector vect2 = new MJ3DVector(points[2].getX()-points[0].getX(), points[2].getY()-points[0].getY(), points[2].getZ()-points[0].getZ());
 		this.normal = MJ3DVector.crossProduct(vect1, vect2);
+		if(reverseSurfaceNormal){
+			this.normal.scale(-1);
+		}
 		this.normal.normalize();
 	}
 

@@ -70,16 +70,19 @@ public class MJ3DPointsRow {
 		MJ3DPointsRow rowLarge;
 		MJ3DPointsRow rowSmall;
 		boolean alwaysBothTriads = false;
+		boolean reversePointsOrder = false;
 		if(row1.points.length > row2.points.length){
 			rowLarge = row1;
 			rowSmall = row2;
 		} else if(row1.points.length < row2.points.length){
 			rowLarge = row2;
 			rowSmall = row1;
+			reversePointsOrder = true;
 		} else {
 			alwaysBothTriads = true;
 			rowLarge = row2;
 			rowSmall = row1;
+			reversePointsOrder = true;
 		}
 		
 		int triadCount = rowLarge.points.length -1 + rowSmall.points.length - 1;
@@ -99,37 +102,32 @@ public class MJ3DPointsRow {
 		for(rowLargeIndex=0; rowLargeIndex<rowLarge.points.length-1; rowLargeIndex++){
 			if(alwaysBothTriads || rowLarge.relativeLengths[rowLargeIndex] >= rowSmall.relativeLengths[rowSmallIndex] && rowSmallIndex < rowSmall.points.length-1){
 				MJ3DPoint3D [] pts = {rowLarge.points[rowLargeIndex],rowSmall.points[rowSmallIndex+1],rowSmall.points[rowSmallIndex]};
-				triads[triadIndex++] = createTriad(pts, triadColor, ambientLight, vectorOfLight, illuminationFactor); 
+				triads[triadIndex++] = createTriad(pts, triadColor, ambientLight, vectorOfLight, illuminationFactor, reversePointsOrder); 
 				if(rowSmallIndex < rowSmall.points.length-1)
 					rowSmallIndex++;
 			}
 			MJ3DPoint3D [] pts = {rowLarge.points[rowLargeIndex],rowLarge.points[rowLargeIndex+1],rowSmall.points[rowSmallIndex]};
-			triads[triadIndex++] = createTriad(pts, triadColor, ambientLight, vectorOfLight, illuminationFactor);
+			triads[triadIndex++] = createTriad(pts, triadColor, ambientLight, vectorOfLight, illuminationFactor, reversePointsOrder);
 		}
 		if(wrapEnds){
 			if(rowLarge.points.length > 1){
-				MJ3DPoint3D [] pts1 = {rowLarge.points[0],rowLarge.points[rowLargeIndex],rowSmall.points[0]};
-				triads[triadIndex++] = createTriad(pts1, triadColor, ambientLight, vectorOfLight, illuminationFactor); 
+				MJ3DPoint3D [] pts1 = {rowLarge.points[rowLargeIndex],rowLarge.points[0],rowSmall.points[0]};
+				triads[triadIndex++] = createTriad(pts1, triadColor, ambientLight, vectorOfLight, illuminationFactor, reversePointsOrder); 
 			}
 			
 			if(rowSmall.points.length > 1){
-				MJ3DPoint3D [] pts2 = {rowLarge.points[rowLargeIndex],rowSmall.points[rowSmallIndex],rowSmall.points[0]};
-				triads[triadIndex++] = createTriad(pts2, triadColor, ambientLight, vectorOfLight, illuminationFactor);
+				MJ3DPoint3D [] pts2 = {rowLarge.points[rowLargeIndex],rowSmall.points[0],rowSmall.points[rowSmallIndex]};
+				triads[triadIndex++] = createTriad(pts2, triadColor, ambientLight, vectorOfLight, illuminationFactor, reversePointsOrder);
 			}
 			
 		}
-//		for(MJ3DTriad t : triads){
-//			if (t == null){
-//				throw new IllegalStateException("Triads cannot be null!");
-//			}
-//		}
 		return triads;
 	}
 
-	private static MJ3DTriad createTriad(MJ3DPoint3D[] pts, Color triadColor, float ambientLight, MJ3DVector vectorOfLight, float illuminationFactor) {
+	private static MJ3DTriad createTriad(MJ3DPoint3D[] pts, Color triadColor, float ambientLight, MJ3DVector vectorOfLight, float illuminationFactor, boolean reverseSurfaceNormal) {
 		MJ3DTriad t =new MJ3DTriad(pts);
-		t.updateSurfaceNormal();
-		float lighting = ambientLight - illuminationFactor * (MJ3DVector.dotProduct(vectorOfLight, t.getNormal())-1);
+		t.updateSurfaceNormal(reverseSurfaceNormal);
+		float lighting = ambientLight - illuminationFactor * (MJ3DVector.dotProduct(vectorOfLight, t.getNormal()) -1);
 		t.setColor(ColorBlender.scaleColor(triadColor, lighting));
 		return t;
 	}
