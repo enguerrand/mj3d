@@ -26,16 +26,12 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 	private final int seaColorDeep;
 	private MJ3DVector vectorOfLight = MJ3DVector.Y_UNIT_VECTOR;
 	private MJ3DTriad[] visibleTriads;
-	private MJ3DTriad[] visibleTriadBuffer;
 	private MJ3DPoint3D[] points;
-	private MJ3DPoint3D[] pointBuffer;
-	private MJ3DPoint3D[][] pointsMatrix;
-	private MJ3DPoint3D[][] pointsMatrixBuffer;
 	private MJ3DViewingPosition viewingPosition;
 	private final FractalNoiseGenerator noiseGen;
-	private final int width;
 	private final float visibility;
 	private final float triadSize;
+	private final float maxTriadSize;
 	private float seaLevel;
 	private float ambientLight;
 	private float maxZ = Float.MIN_VALUE;
@@ -50,39 +46,41 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 		this.seaColorShallow = colorScheme.getSeaColorShallow().getRGB();
 		this.seaColorDeep = colorScheme.getSeaColorDeep().getRGB();
 		this.ambientLight = ambientLight;
-		int segmentCount = Math.round(this.planetBaseShape.getCirumference() / triadSize);
-		this.triadSize = this.planetBaseShape.getCirumference() / segmentCount;
+		this.triadSize = triadSize;
+		this.maxTriadSize = this.triadSize * 3;
 		this.visibility = visibility;
-		this.width = (int)(2*visibility/triadSize)+1;
 		this.noiseGen = new FractalNoiseGenerator(this.seed, fractalNoiseConfig);
 	}
 	
 	@Override
 	public void create(){
 		float deltaAngle = planetBaseShape.getAngle(triadSize);
+		float maxDeltaAngle = planetBaseShape.getAngle(maxTriadSize);
 		
 		List<MJ3DPointsRow> rows = new ArrayList<>();
+		float minLat = - Defines.PI * 0.5f;
 		float maxLat = Defines.PI * 0.5f;
-		for (float latitudeRad = -Defines.PI * 0.5f; latitudeRad <= maxLat; latitudeRad = Math.min(latitudeRad+deltaAngle, maxLat)) {
+		for (float latitudeRad = minLat; latitudeRad <= maxLat; latitudeRad = Math.min(latitudeRad+deltaAngle, maxLat)) {
 			float circumference = planetBaseShape.getCirumference(latitudeRad);
 			final float lat = latitudeRad;
 			PointsProducer p = new PointsProducer() {
 				@Override
 				public MJ3DPoint3D create(float relativeLengthOnRow) {
+//					System.out.println(relativeLengthOnRow);
 					MJ3DPoint3D pt;
 					float longitude;
 					if(circumference < Defines.ALMOST_ZERO){
 						longitude = 0f;
 					}
 					else {
-						longitude = relativeLengthOnRow * 2 * Defines.PI;
+						longitude = relativeLengthOnRow * (2 * Defines.PI - maxDeltaAngle);
 					}
 					pt = planetBaseShape.getPoint(lat, longitude);
 					float offset = noiseGen.fractalNoise3D(pt.getX(), pt.getY(), pt.getZ());
 					return planetBaseShape.getPoint(lat, longitude, offset);
 				}
 			};
-			MJ3DPointsRow row = new MJ3DPointsRow(triadSize, triadSize, circumference, p);
+			MJ3DPointsRow row = new MJ3DPointsRow(triadSize, maxTriadSize, circumference-maxTriadSize, p);
 			rows.add(row);
 			if(latitudeRad == maxLat){
 				break;
@@ -98,21 +96,22 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 	}
 
 	
-//	// Test case for plane
+	// Test case for plane
 //	@Override
 //	public void create(){
 //		float delta = 50;
 //		
 //		List<MJ3DPointsRow> rows = new ArrayList<>();
 //		for (int i=0; i<10; i++) {
-//			float x = delta * i;
+//			float x = -6000f + delta * i;
 //			PointsProducer p = new PointsProducer() {
 //				@Override
 //				public MJ3DPoint3D create(float relativeLengthOnRow) {
-//					return new MJ3DPoint3D(x, relativeLengthOnRow, 0f);
+////					System.out.println(relativeLengthOnRow);
+//					return new MJ3DPoint3D(x, relativeLengthOnRow*10*delta, 0f);
 //				}
 //			};
-//			MJ3DPointsRow row = new MJ3DPointsRow(delta, delta, 10*delta, p);
+//			MJ3DPointsRow row = new MJ3DPointsRow(delta, delta*1.1f, 10*delta, p);
 //			rows.add(row);
 //		}
 //		
@@ -121,7 +120,7 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 //			points[tmpPtIndex].setMapIndex(tmpPtIndex);
 //		}
 //		
-//		this.visibleTriads = MJ3DPointsRow.getTriads(rows, colorShade, ambientLight, vectorOfLight);
+//		this.visibleTriads = MJ3DPointsRow.getTriads(rows, true, colorShade, ambientLight, vectorOfLight);
 //	}
 	
 	@Override

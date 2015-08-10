@@ -8,6 +8,7 @@ import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.view.ColorBlender;
+import sun.awt.AWTAccessor.SystemColorAccessor;
 
 public class MJ3DPointsRow {
 	private final MJ3DPoint3D[] points;
@@ -20,22 +21,25 @@ public class MJ3DPointsRow {
 		}
 		if(2 * maxDistance + minDistance <= totalLength){
 			float unroundedPointsCount = 2 * ((totalLength-maxDistance) / (minDistance + maxDistance)) + 1;
-			int pointsCount = Math.round(unroundedPointsCount);
-			float factor = ((float) unroundedPointsCount) / pointsCount;
+			int pointsCount = (int)unroundedPointsCount;
+			if(pointsCount % 2 == 0){
+				pointsCount++;
+			}
+			float factor = totalLength / ((0.5f * (minDistance + maxDistance) * (pointsCount - 2)) + maxDistance );
 			this.minTriadSize = minDistance * factor;
 			this.maxTriadSize = maxDistance * factor;
 			points = new MJ3DPoint3D[pointsCount];
 			relativeLengths = new float[pointsCount];
-			int maxIndex = (int)(0.5 * pointsCount);
-			float increment = (maxTriadSize - minTriadSize) / ((float)maxIndex);
+			int maxIndex = Math.round(0.5f * pointsCount);
+			float increment = (maxTriadSize - minTriadSize) / (maxIndex * totalLength);
 			float relativeLength = 0;
 			float relativeTriadSize = maxTriadSize / totalLength;
 			float delta = (minTriadSize - maxTriadSize) / totalLength;
 			for(int i=0; i<pointsCount; i++){
 				points[i] = producer.create(relativeLength);
 				relativeLengths[i] = relativeLength;
-				delta += increment;
-				relativeLength = relativeLength + relativeTriadSize + delta;
+				delta = Math.abs(i - maxIndex) * increment; 
+				relativeLength = relativeLength + relativeTriadSize - delta;
 			}
 		} else {
 			int pointsCount;
@@ -54,6 +58,7 @@ public class MJ3DPointsRow {
 			} else {
 				this.maxTriadSize = 0f;
 			}
+			float relativeTriadSize = this.maxTriadSize / totalLength;
 			this.minTriadSize = this.maxTriadSize;
 			points = new MJ3DPoint3D[pointsCount];
 			relativeLengths = new float[pointsCount];
@@ -61,7 +66,7 @@ public class MJ3DPointsRow {
 			for(int i=0; i<pointsCount; i++){
 				points[i] = producer.create(rel);
 				relativeLengths[i] = rel;
-				rel += minTriadSize;
+				rel += relativeTriadSize;
 			}
 		}
 	}
@@ -121,7 +126,16 @@ public class MJ3DPointsRow {
 			}
 			
 		}
-		return triads;
+		int nulls = 0;
+		for(MJ3DTriad t : triads){
+			if (t == null){
+//				throw new IllegalStateException("Triads cannot be null!");
+				nulls++;
+			}
+		}
+		MJ3DTriad[] reduced = new MJ3DTriad[triads.length - nulls];
+		System.arraycopy(triads, 0, reduced, 0, reduced.length);
+		return reduced;
 	}
 
 	private static MJ3DTriad createTriad(MJ3DPoint3D[] pts, Color triadColor, float ambientLight, MJ3DVector vectorOfLight, float illuminationFactor, boolean reverseSurfaceNormal) {
