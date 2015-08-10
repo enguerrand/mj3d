@@ -30,8 +30,9 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 	private MJ3DViewingPosition viewingPosition;
 	private final FractalNoiseGenerator noiseGen;
 	private final float visibility;
-	private final float triadSize;
-	private final float maxTriadSize;
+	private float triadSize;
+	private float maxTriadSize;
+	private float sizeFactor = 3;
 	private float seaLevel;
 	private float ambientLight;
 	private float maxZ = Float.MIN_VALUE;
@@ -46,8 +47,7 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 		this.seaColorShallow = colorScheme.getSeaColorShallow().getRGB();
 		this.seaColorDeep = colorScheme.getSeaColorDeep().getRGB();
 		this.ambientLight = ambientLight;
-		this.triadSize = triadSize;
-		this.maxTriadSize = this.triadSize * 3;
+		setTriadSize(triadSize);
 		this.visibility = visibility;
 		this.noiseGen = new FractalNoiseGenerator(this.seed, fractalNoiseConfig);
 	}
@@ -123,8 +123,26 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 //		this.visibleTriads = MJ3DPointsRow.getTriads(rows, true, colorShade, ambientLight, vectorOfLight);
 //	}
 	
+	private void setTriadSize(float newSize){
+		this.triadSize = newSize;
+		this.maxTriadSize = newSize * sizeFactor;
+	}
+	
 	@Override
 	public void update(){
+		float distanceToSurface = this.planetBaseShape.getDistanceToSurface(this.viewingPosition);
+		System.out.println("Distance to surface: "+distanceToSurface);
+		float newTriadSize;
+		if(distanceToSurface > 4000)
+			newTriadSize = 100f;
+		else if(distanceToSurface > 2000)
+			newTriadSize = 50f;
+		else if(distanceToSurface > 1000)
+			newTriadSize = 25f;
+		else
+			newTriadSize = 12.5f;
+			
+		setTriadSize(newTriadSize);
 		create();
 	}
 	

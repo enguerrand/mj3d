@@ -33,6 +33,12 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 
 	public void setMap(MJ3DMap map) {
 		this.map = map;
+
+		clearCacheArrays();
+		orientation.normalizeIfNeeded();
+	}
+	
+	private void clearCacheArrays(){
 		int pointCount = map.getPointsCount();
 		pointDistances = new float[pointCount];
 		cachedPointTransformationsX = new float[pointCount]; 
@@ -40,11 +46,6 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 		cachedPointTransformationsZ = new float[pointCount]; 
 		cachedPointProjectionsX = new int[pointCount]; 
 		cachedPointProjectionsY = new int[pointCount]; 
-		clearCacheArrays();
-		orientation.normalizeIfNeeded();
-	}
-	
-	private void clearCacheArrays(){
 		for(int i=0; i<map.getPointsCount(); i++){
 			pointDistances[i] 				= Float.MIN_VALUE;
 			cachedPointTransformationsX[i] 	= Float.MIN_VALUE;
