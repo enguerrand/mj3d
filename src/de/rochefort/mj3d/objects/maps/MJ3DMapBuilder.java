@@ -61,6 +61,6 @@ public class MJ3DMapBuilder {
 		if(dynamicTerrain == null){
 			return new MJ3DStaticMapImpl(mj3dObjects, backgroundColor.getRGB(), foggy, wireframe);
 		}
-		return new MJ3DDynamicMapImpl(dynamicTerrain, backgroundColor, wireframe);
+		return new MJ3DDynamicMapImpl(dynamicTerrain, backgroundColor, wireframe, foggy);
 	}
 }

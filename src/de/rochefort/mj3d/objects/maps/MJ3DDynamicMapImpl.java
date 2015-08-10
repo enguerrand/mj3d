@@ -11,10 +11,12 @@ public class MJ3DDynamicMapImpl implements MJ3DMap{
 	private final boolean wireframe;
 	private int backgroundColor;
 	private final MJ3DTerrain terrain;
-	public MJ3DDynamicMapImpl(MJ3DTerrain terrain, Color backgroundColor, boolean wireframe) {
+	private final boolean fog;
+	public MJ3DDynamicMapImpl(MJ3DTerrain terrain, Color backgroundColor, boolean wireframe, boolean fog) {
 		this.terrain = terrain;
 		this.wireframe = wireframe;
 		this.backgroundColor = backgroundColor.getRGB();
+		this.fog = fog;
 	}
 
 	public void update(MJ3DViewingPosition newPosition){
@@ -33,7 +35,7 @@ public class MJ3DDynamicMapImpl implements MJ3DMap{
 
 	@Override
 	public boolean isFoggy() {
-		return true;
+		return fog;
 	}
 
 	@Override
