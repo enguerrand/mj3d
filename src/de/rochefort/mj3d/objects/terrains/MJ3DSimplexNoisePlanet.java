@@ -97,7 +97,7 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 			points[tmpPtIndex].setMapIndex(tmpPtIndex);
 		}
 		
-		this.visibleTriads = MJ3DPointsRow.getTriads(rows, false, colorShade, ambientLight, vectorOfLight);
+		this.visibleTriads = MJ3DPointsRow.getTriads(rows, true, colorShade, ambientLight, vectorOfLight);
 	}
 
 	
