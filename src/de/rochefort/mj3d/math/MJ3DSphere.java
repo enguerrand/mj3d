@@ -4,6 +4,7 @@ import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 public class MJ3DSphere {
+	private static final float ALPHA_SCALING = 1.1f;
 	private final MJ3DPoint3D center;
 	private final float radius;
 	private final float radiusSquared;
@@ -71,5 +72,53 @@ public class MJ3DSphere {
 		float d = (float)Math.sqrt(dSquared);
 		float cosAlpha = (this.radiusSquared + dSquared - dHorizonSquared) / (2f * this.radius * d);
 		return (float) Math.acos(cosAlpha);
+	}
+	
+	public LongLatPosition getLongLatPosition(MJ3DVector vector){
+		MJ3DVector vectorFromOrigin = vector.substract(center);
+		vectorFromOrigin.scaleToUnitLength();
+		float latitude = (float) Math.asin(vectorFromOrigin.getZ());
+		float longitude = (float) Math.asin(vectorFromOrigin.getX() / Math.cos(latitude));
+		if(vectorFromOrigin.getY() < 0){
+			longitude = Defines.PI * 3f  - longitude ;
+		}
+		return new LongLatPosition(longitude, latitude);
+	}
+	
+	public FloatInterval getHorizonLongitudeInterval(MJ3DViewingPosition position, float latitude){
+		LongLatPosition longLatPos = getLongLatPosition(position.getPositionVector());
+		float alpha = getHorizonAngle(position);
+		float latitudeMax = longLatPos.getLatitude() + alpha * ALPHA_SCALING;
+		if(latitude > latitudeMax){
+			return new FloatInterval(0f, 0f);
+		}
+		float latitudeMin = longLatPos.getLatitude() - alpha * ALPHA_SCALING;
+		if(latitude < latitudeMin){
+			return new FloatInterval(0f, 0f);
+		}
+		if(longLatPos.getLatitude() + alpha * ALPHA_SCALING > 0.5f * Defines.PI){
+			float lowestFullLongitude = Defines.PI - longLatPos.getLatitude() + alpha * ALPHA_SCALING;
+			if(latitude > lowestFullLongitude){
+				return new FloatInterval(0f, Defines.PI_DOUBLED);
+			}
+		}
+		if(longLatPos.getLatitude() - alpha * ALPHA_SCALING < -0.5f * Defines.PI){
+			float highestFullLongitude = Defines.PI + longLatPos.getLatitude() - alpha * ALPHA_SCALING;
+			if(latitude < highestFullLongitude){
+				return new FloatInterval(0f, Defines.PI_DOUBLED);
+			}
+		}
+		float min = longLatPos.getLongitude() - Defines.PI * 0.5f;
+		float max = longLatPos.getLongitude() + Defines.PI * 0.5f;
+//		if(min > Defines.PI_DOUBLED)
+//			min -= Defines.PI_DOUBLED;
+//		else if(min < 0f)
+//			min += Defines.PI_DOUBLED;
+//		if(max > Defines.PI_DOUBLED)
+//			max -= Defines.PI_DOUBLED;
+//		else if(max < 0f)
+//			max += Defines.PI_DOUBLED;
+		
+		return new FloatInterval(min, max);
 	}
 }

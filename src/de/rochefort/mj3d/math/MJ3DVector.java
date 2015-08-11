@@ -95,6 +95,9 @@ public class MJ3DVector implements MJ3DObject {
 		this.y*=factor;
 		this.z*=factor;
 	}
+	public void scaleToUnitLength() {
+		this.scale(1f / getLength());
+	}
 	@Override
 	public String toString() {
 		NumberFormat df = DecimalFormat.getNumberInstance();

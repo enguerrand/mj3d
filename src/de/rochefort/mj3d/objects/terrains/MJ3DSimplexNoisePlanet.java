@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import de.rochefort.mj3d.math.Defines;
+import de.rochefort.mj3d.math.FloatInterval;
+import de.rochefort.mj3d.math.LongLatPosition;
 import de.rochefort.mj3d.math.MJ3DSphere;
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.math.randomness.FractalNoiseConfig;
@@ -62,6 +64,9 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 		float maxLat = Defines.PI * 0.5f;
 		for (float latitudeRad = minLat; latitudeRad <= maxLat; latitudeRad = Math.min(latitudeRad+deltaAngle, maxLat)) {
 			float circumference = planetBaseShape.getCirumference(latitudeRad);
+//			final FloatInterval longitudeInterval = new FloatInterval(0f, Defines.PI_DOUBLED);
+			final FloatInterval longitudeInterval = planetBaseShape.getHorizonLongitudeInterval(viewingPosition, latitudeRad);
+			final float circumferenceSegment = circumference * (longitudeInterval.getSize()) / Defines.PI_DOUBLED;
 			final float lat = latitudeRad;
 			PointsProducer p = new PointsProducer() {
 				@Override
@@ -69,18 +74,18 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 //					System.out.println(relativeLengthOnRow);
 					MJ3DPoint3D pt;
 					float longitude;
-					if(circumference < Defines.ALMOST_ZERO){
+					if(circumferenceSegment < Defines.ALMOST_ZERO){
 						longitude = 0f;
 					}
 					else {
-						longitude = relativeLengthOnRow * (2 * Defines.PI - maxDeltaAngle);
+						longitude = longitudeInterval.getMin() + relativeLengthOnRow * longitudeInterval.getSize();
 					}
 					pt = planetBaseShape.getPoint(lat, longitude);
 					float offset = noiseGen.fractalNoise3D(pt.getX(), pt.getY(), pt.getZ());
 					return planetBaseShape.getPoint(lat, longitude, offset);
 				}
 			};
-			MJ3DPointsRow row = new MJ3DPointsRow(triadSize, maxTriadSize, circumference-maxTriadSize, p);
+			MJ3DPointsRow row = new MJ3DPointsRow(triadSize, maxTriadSize, circumferenceSegment, p);
 			rows.add(row);
 			if(latitudeRad == maxLat){
 				break;
@@ -92,7 +97,7 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 			points[tmpPtIndex].setMapIndex(tmpPtIndex);
 		}
 		
-		this.visibleTriads = MJ3DPointsRow.getTriads(rows, true, colorShade, ambientLight, vectorOfLight);
+		this.visibleTriads = MJ3DPointsRow.getTriads(rows, false, colorShade, ambientLight, vectorOfLight);
 	}
 
 	
@@ -144,6 +149,12 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 			
 		setTriadSize(newTriadSize);
 		create();
+//		System.out.println("====");
+//		System.out.println("Own Pos: "+this.viewingPosition.getPositionVector());
+		LongLatPosition llPos = planetBaseShape.getLongLatPosition(this.viewingPosition.getPositionVector());
+//		System.out.println("Long lat: "+llPos);
+//		System.out.println("Verification pos: "+planetBaseShape.getPoint(llPos.getLatitude(), llPos.getLongitude()));
+		
 	}
 	
 	@Override
