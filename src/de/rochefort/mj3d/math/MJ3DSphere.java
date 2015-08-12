@@ -24,7 +24,7 @@ public class MJ3DSphere {
 		float correctedRadius = radius + radialOffset;
 		float x = center.getX() + (float) (correctedRadius * Math.cos(latitudeRad) * Math.sin(longitudeRad));
 		float y = center.getY() + (float) (correctedRadius * Math.cos(latitudeRad) * Math.sin(longitudeRad + 0.5f*Defines.PI));
-		float z = center.getZ() + (float) (correctedRadius * Math.sin(latitudeRad));
+		float z = getZ(latitudeRad, correctedRadius);
 		return new MJ3DPoint3D(x, y, z);
 	}
 	
@@ -52,6 +52,14 @@ public class MJ3DSphere {
 		return new MJ3DVector(position.getXPos()-center.getX(), 
 				position.getYPos()-center.getY(), 
 				position.getZPos()-center.getZ());
+	}
+	
+	public float getZ(float latitude, float radius){
+		return center.getZ() + (float) (radius * Math.sin(latitude));
+	}
+	
+	public float getZ(float latitude){
+		return getZ(latitude, this.radius);
 	}
 	
 	public float getDistanceToCenterSquared(MJ3DViewingPosition position){
@@ -113,8 +121,45 @@ public class MJ3DSphere {
 				return new FloatInterval(0f, Defines.PI_DOUBLED);
 			}
 		}
-		float min = longLatPos.getLongitude() - Defines.PI * 0.5f;
-		float max = longLatPos.getLongitude() + Defines.PI * 0.5f;
+		float horizonZ = getZ(latitude);
+//		float distanceToCenterSquared = getDistanceToCenterSquared(position);
+		
+		//Center to horizon
+//		float centerToHorizonDeltaZ = horizonZ - center.getZ();
+//		float centerToHorizonDeltaZSquared = centerToHorizonDeltaZ * centerToHorizonDeltaZ;
+//		float centerToHorizonDeltaXYSquared = radiusSquared - centerToHorizonDeltaZSquared;
+		float centerToHorizonXY = (float) (radius * Math.cos(latitude));
+//		float centerToHorizonXY = (float) Math.sqrt(centerToHorizonDeltaXYSquared);
+		float centerToHorizonDeltaXYSquared = centerToHorizonXY * centerToHorizonXY;
+		
+		// Center to viewer
+		MJ3DVector vectorFromCenterToViewer = getVectorFromCenter(position);
+		float centerToViewerDeltaX = vectorFromCenterToViewer.getX();
+		float centerToViewerDeltaY = vectorFromCenterToViewer.getY();
+		float centerToViewerDeltaXYSquared = centerToViewerDeltaX * centerToViewerDeltaX + centerToViewerDeltaY * centerToViewerDeltaY;
+		float centerToViewerXY =(float)Math.sqrt(centerToViewerDeltaXYSquared);
+		
+		// Viewer to horizon
+		float viewerToHorizonSquared = getDistanceToHorizonSquared(position);
+		float viewerToHorizonDeltaZ = horizonZ - position.getZPos();
+		float viewerToHorizonDeltaXYSquared = viewerToHorizonSquared - viewerToHorizonDeltaZ * viewerToHorizonDeltaZ;
+		
+		
+		// cosine rule
+		float cosineDeltaAngleToHorizon = (centerToHorizonDeltaXYSquared + centerToViewerDeltaXYSquared 
+				- viewerToHorizonDeltaXYSquared) / (2 * centerToHorizonXY * centerToViewerXY);
+		if(cosineDeltaAngleToHorizon > 1)
+			cosineDeltaAngleToHorizon = 1f;
+		else if(cosineDeltaAngleToHorizon < -1)
+			cosineDeltaAngleToHorizon = -1;
+//		else 
+//			System.out.println(cosineDeltaAngleToHorizon);
+		float deltaAngleToHorizon = (float) Math.acos(cosineDeltaAngleToHorizon);
+		float min = longLatPos.getLongitude() - deltaAngleToHorizon;
+		float max = longLatPos.getLongitude() + deltaAngleToHorizon;
+//		
+//		float min = longLatPos.getLongitude() - Defines.PI * 0.5f;
+//		float max = longLatPos.getLongitude() + Defines.PI * 0.5f;
 		
 		return new FloatInterval(min, max);
 	}

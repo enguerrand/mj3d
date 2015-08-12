@@ -138,22 +138,21 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 		float distanceToSurface = this.planetBaseShape.getDistanceToSurface(this.viewingPosition);
 		System.out.println("Distance to surface: "+distanceToSurface);
 		float newTriadSize;
-		if(distanceToSurface > 4000)
-			newTriadSize = 100f;
-		else if(distanceToSurface > 2000)
-			newTriadSize = 50f;
+		if(distanceToSurface > 5000)
+			newTriadSize = distanceToSurface / 10f;
+		else if(distanceToSurface > 2500)
+			newTriadSize = 250f;
 		else if(distanceToSurface > 1000)
-			newTriadSize = 25f;
-		else
-			newTriadSize = 12.5f;
-			
+			newTriadSize = 100f;
+		else 
+			newTriadSize = 50f;
 		setTriadSize(newTriadSize);
 		create();
-		System.out.println("====");
-		System.out.println("Own Pos: "+this.viewingPosition.getPositionVector());
+//		System.out.println("====");
+//		System.out.println("Own Pos: "+this.viewingPosition.getPositionVector());
 		LongLatPosition llPos = planetBaseShape.getLongLatPosition(this.viewingPosition.getPositionVector());
-		System.out.println("Long lat: "+llPos);
-		System.out.println("Verification pos: "+planetBaseShape.getPoint(llPos.getLatitude(), llPos.getLongitude()));
+//		System.out.println("Long lat: "+llPos);
+//		System.out.println("Verification pos: "+planetBaseShape.getPoint(llPos.getLatitude(), llPos.getLongitude()));
 		
 	}
 	
