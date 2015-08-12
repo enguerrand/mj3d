@@ -90,11 +90,11 @@ public class MJ3DSphere {
 		float alpha = getHorizonAngle(position);
 		float latitudeMax = longLatPos.getLatitude() + alpha * ALPHA_SCALING;
 		if(latitude > latitudeMax){
-			return new FloatInterval(0f, 0f);
+			return FloatInterval.EMPTY;
 		}
 		float latitudeMin = longLatPos.getLatitude() - alpha * ALPHA_SCALING;
 		if(latitude < latitudeMin){
-			return new FloatInterval(0f, 0f);
+			return FloatInterval.EMPTY;
 		}
 		if(longLatPos.getLatitude() + alpha * ALPHA_SCALING > 0.5f * Defines.PI){
 			float lowestFullLongitude = Defines.PI - longLatPos.getLatitude() + alpha * ALPHA_SCALING;
@@ -110,14 +110,6 @@ public class MJ3DSphere {
 		}
 		float min = longLatPos.getLongitude() - Defines.PI * 0.5f;
 		float max = longLatPos.getLongitude() + Defines.PI * 0.5f;
-//		if(min > Defines.PI_DOUBLED)
-//			min -= Defines.PI_DOUBLED;
-//		else if(min < 0f)
-//			min += Defines.PI_DOUBLED;
-//		if(max > Defines.PI_DOUBLED)
-//			max -= Defines.PI_DOUBLED;
-//		else if(max < 0f)
-//			max += Defines.PI_DOUBLED;
 		
 		return new FloatInterval(min, max);
 	}

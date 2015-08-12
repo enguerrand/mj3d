@@ -1,6 +1,7 @@
 package de.rochefort.mj3d.math;
 
 public class FloatInterval {
+	public static final FloatInterval EMPTY = new FloatInterval(0f, 0f);
 	private final float min;
 	private final float max;
 	private final float size;
