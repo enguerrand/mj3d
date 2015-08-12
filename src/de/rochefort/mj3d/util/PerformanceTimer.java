@@ -26,6 +26,9 @@ public class PerformanceTimer {
 	public static void stopInterimTime(String refName){
 		if(!INTERIM_TIMES_ACTIVE) return;
 		long now = System.currentTimeMillis();
+		if(lastStoppedTime == null){
+			return;
+		}
 		long delta = now - lastStoppedTime;
 		if(times.containsKey(refName)){
 			delta += times.get(refName);
