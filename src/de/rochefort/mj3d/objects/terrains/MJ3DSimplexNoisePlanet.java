@@ -149,11 +149,11 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 			
 		setTriadSize(newTriadSize);
 		create();
-//		System.out.println("====");
-//		System.out.println("Own Pos: "+this.viewingPosition.getPositionVector());
+		System.out.println("====");
+		System.out.println("Own Pos: "+this.viewingPosition.getPositionVector());
 		LongLatPosition llPos = planetBaseShape.getLongLatPosition(this.viewingPosition.getPositionVector());
-//		System.out.println("Long lat: "+llPos);
-//		System.out.println("Verification pos: "+planetBaseShape.getPoint(llPos.getLatitude(), llPos.getLongitude()));
+		System.out.println("Long lat: "+llPos);
+		System.out.println("Verification pos: "+planetBaseShape.getPoint(llPos.getLatitude(), llPos.getLongitude()));
 		
 	}
 	

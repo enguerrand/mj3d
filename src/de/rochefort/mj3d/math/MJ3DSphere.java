@@ -78,7 +78,12 @@ public class MJ3DSphere {
 		MJ3DVector vectorFromOrigin = vector.substract(center);
 		vectorFromOrigin.scaleToUnitLength();
 		float latitude = (float) Math.asin(vectorFromOrigin.getZ());
-		float longitude = (float) Math.asin(vectorFromOrigin.getX() / Math.cos(latitude));
+		float  sineLongitude = (float)(vectorFromOrigin.getX() / Math.cos(latitude));
+		if(sineLongitude > 1f)
+			sineLongitude = 1f;
+		if(sineLongitude < -1f)
+			sineLongitude = -1f;
+		float longitude = (float) Math.asin(sineLongitude);
 		if(vectorFromOrigin.getY() < 0){
 			longitude = Defines.PI * 3f  - longitude ;
 		}

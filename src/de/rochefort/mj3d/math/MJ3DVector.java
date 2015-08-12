@@ -34,6 +34,9 @@ public class MJ3DVector implements MJ3DObject {
 	}
 	
 	public MJ3DVector(float x, float y, float z) {
+		if(Float.isNaN(x) || Float.isNaN(y) || Float.isNaN(z)){
+			throw new IllegalArgumentException("One of x/y/z is NaN: "+x+"/"+y+"/"+z);
+		}
 		this.x = x;
 		this.y = y;
 		this.z = z;

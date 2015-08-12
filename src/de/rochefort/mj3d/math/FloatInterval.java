@@ -9,6 +9,8 @@ public class FloatInterval {
 	public FloatInterval(float min, float max) {
 		if(min>max)
 			throw new IllegalArgumentException("Max cannot be smaller than min!");
+		if(Float.isNaN(min) || Float.isNaN(max))
+			throw new IllegalArgumentException("Max ("+max+") and min ("+min+") must be valid numbers!");
 		this.min = min;
 		this.max = max;
 		this.size = max - min;
