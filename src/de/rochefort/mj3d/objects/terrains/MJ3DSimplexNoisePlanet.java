@@ -2,22 +2,21 @@ package de.rochefort.mj3d.objects.terrains;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import de.rochefort.mj3d.math.Defines;
 import de.rochefort.mj3d.math.FloatInterval;
-import de.rochefort.mj3d.math.LongLatPosition;
 import de.rochefort.mj3d.math.MJ3DSphere;
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.math.randomness.FractalNoiseConfig;
 import de.rochefort.mj3d.math.randomness.FractalNoiseGenerator;
 import de.rochefort.mj3d.objects.meshing.MJ3DPointsRow;
+import de.rochefort.mj3d.objects.meshing.MJ3DPointsRow.WrappingPolicy;
 import de.rochefort.mj3d.objects.meshing.PointsProducer;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
-import de.rochefort.mj3d.view.ColorBlender;
+import de.rochefort.mj3d.util.PerformanceTimer;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
@@ -56,8 +55,9 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 	
 	@Override
 	public void create(){
+		PerformanceTimer.stopInterimTime("enter create method");
+
 		float deltaAngle = planetBaseShape.getAngle(triadSize);
-		float maxDeltaAngle = planetBaseShape.getAngle(maxTriadSize);
 		
 		List<MJ3DPointsRow> rows = new ArrayList<>();
 		float minLat = - Defines.PI * 0.5f;
@@ -92,12 +92,17 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 			}
 		}
 		
+		PerformanceTimer.stopInterimTime("build rows");
+		
 		this.points = MJ3DPointsRow.getPoints(rows);
+		PerformanceTimer.stopInterimTime("get points from rows");
 		for(int tmpPtIndex = 0; tmpPtIndex < this.points.length; tmpPtIndex++){
 			points[tmpPtIndex].setMapIndex(tmpPtIndex);
 		}
+		PerformanceTimer.stopInterimTime("set points map indices");
 		
-		this.visibleTriads = MJ3DPointsRow.getTriads(rows, true, colorShade, ambientLight, vectorOfLight);
+		this.visibleTriads = MJ3DPointsRow.getTriads(rows, WrappingPolicy.ALWAYS, colorShade, ambientLight, vectorOfLight);
+		PerformanceTimer.stopInterimTime("Mesh triads from point rows");
 	}
 
 	
@@ -135,8 +140,9 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 	
 	@Override
 	public void update(){
+		PerformanceTimer.stopInterimTime("enter update method");
 		float distanceToSurface = this.planetBaseShape.getDistanceToSurface(this.viewingPosition);
-		System.out.println("Distance to surface: "+distanceToSurface);
+//		System.out.println("Distance to surface: "+distanceToSurface);
 		float newTriadSize;
 		if(distanceToSurface > 5000)
 			newTriadSize = distanceToSurface / 10f;
@@ -147,10 +153,12 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 		else 
 			newTriadSize = 50f;
 		setTriadSize(newTriadSize);
+		PerformanceTimer.stopInterimTime("calculate and set new triad size");
 		create();
+		PerformanceTimer.stopInterimTime("exit create method");
 //		System.out.println("====");
 //		System.out.println("Own Pos: "+this.viewingPosition.getPositionVector());
-		LongLatPosition llPos = planetBaseShape.getLongLatPosition(this.viewingPosition.getPositionVector());
+//		LongLatPosition llPos = planetBaseShape.getLongLatPosition(this.viewingPosition.getPositionVector());
 //		System.out.println("Long lat: "+llPos);
 //		System.out.println("Verification pos: "+planetBaseShape.getPoint(llPos.getLatitude(), llPos.getLongitude()));
 		

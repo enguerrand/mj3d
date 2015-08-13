@@ -1,24 +1,26 @@
 package de.rochefort.mj3d.objects.meshing;
 
 import java.awt.Color;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.view.ColorBlender;
-import sun.awt.AWTAccessor.SystemColorAccessor;
 
 public class MJ3DPointsRow {
+	public enum WrappingPolicy { ALWAYS, NEVER, AUTO };
 	private final MJ3DPoint3D[] points;
 	private final float[] relativeLengths;
 	private final float minTriadSize;
 	private final float maxTriadSize;
+	private final float totalLength;
 	public MJ3DPointsRow(float minDistance, float maxDistance, float totalLength, PointsProducer producer) {
 		if(minDistance > maxDistance){
 			throw new IllegalArgumentException("minDistance ("+minDistance+") cannot be larger than maxDistance ("+maxDistance+")!");
 		}
+		this.totalLength = totalLength;
 		if(2 * maxDistance + minDistance <= totalLength){
 			float unroundedPointsCount = 2 * ((totalLength-maxDistance) / (minDistance + maxDistance)) + 1;
 			int pointsCount = (int)unroundedPointsCount;
@@ -69,6 +71,18 @@ public class MJ3DPointsRow {
 				rel += relativeTriadSize;
 			}
 		}
+	}
+	
+	public float getTotalLength() {
+		return totalLength;
+	}
+	
+	public float getMinTriadSize() {
+		return minTriadSize;
+	}
+	
+	public float getMaxTriadSize() {
+		return maxTriadSize;
 	}
 	
 	public static MJ3DTriad[] mesh(MJ3DPointsRow row1, MJ3DPointsRow row2, boolean wrapEnds, Color triadColor, float ambientLight, MJ3DVector vectorOfLight){
@@ -164,10 +178,35 @@ public class MJ3DPointsRow {
 		return pts;
 	}
 	
-	public static MJ3DTriad[] getTriads(List<MJ3DPointsRow> rows, boolean wrapEnds, Color triadColor, float ambientLight, MJ3DVector vectorOfLight){
+	public static MJ3DTriad[] getTriads(List<MJ3DPointsRow> rows, WrappingPolicy wrappingPolicy, Color triadColor, float ambientLight, MJ3DVector vectorOfLight){
+		Predicate<MJ3DPointsRow> predicate;
+		switch(wrappingPolicy){
+			case ALWAYS:
+				predicate = r->{return true;};
+				break;
+			case NEVER:
+				predicate = r->{return false;};
+				break;
+			case AUTO:
+				predicate = r -> {
+					int ptsCount = r.points.length;
+					MJ3DPoint3D startPoint = r.points[0];
+					MJ3DPoint3D endPoint = r.points[ptsCount-1];
+					return (startPoint.substract(endPoint).getLengthSquared() < r.maxTriadSize);
+				};
+				break;
+			default:
+				throw new IllegalArgumentException("Wrapping Policy "+wrappingPolicy+" is unknown!");
+			
+		}
+		return getTriads(rows, predicate, triadColor, ambientLight, vectorOfLight);
+	}
+	
+	public static MJ3DTriad[] getTriads(List<MJ3DPointsRow> rows, Predicate<MJ3DPointsRow> wrapEndsCondition, Color triadColor, float ambientLight, MJ3DVector vectorOfLight){
 		MJ3DTriad[][] triadsList = new MJ3DTriad[rows.size()-1][];
 		int currentIndex = 0;
 		for(int rowIndex=1; rowIndex < rows.size(); rowIndex++){
+			boolean wrapEnds = wrapEndsCondition.test(rows.get(rowIndex)) && wrapEndsCondition.test(rows.get(rowIndex-1));
 			triadsList[currentIndex++] = mesh(rows.get(rowIndex-1), rows.get(rowIndex), wrapEnds, triadColor, ambientLight, vectorOfLight);
 		}
 		int totalTriadCount = 0;
