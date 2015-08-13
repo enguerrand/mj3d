@@ -2,6 +2,7 @@ package de.rochefort.mj3d.objects.terrains;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
