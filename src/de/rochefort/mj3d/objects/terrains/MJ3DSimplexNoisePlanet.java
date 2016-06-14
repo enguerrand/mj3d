@@ -1,9 +1,5 @@
 package de.rochefort.mj3d.objects.terrains;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-
 import de.rochefort.mj3d.math.Defines;
 import de.rochefort.mj3d.math.FloatInterval;
 import de.rochefort.mj3d.math.MJ3DSphere;
@@ -12,12 +8,16 @@ import de.rochefort.mj3d.math.randomness.FractalNoiseConfig;
 import de.rochefort.mj3d.math.randomness.FractalNoiseGenerator;
 import de.rochefort.mj3d.objects.meshing.MJ3DPointsRow;
 import de.rochefort.mj3d.objects.meshing.MJ3DPointsRow.WrappingPolicy;
-import de.rochefort.mj3d.objects.meshing.PointsProducer;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
 import de.rochefort.mj3d.util.PerformanceTimer;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
+
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 	private final long seed;
@@ -68,23 +68,20 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 			final FloatInterval longitudeInterval = planetBaseShape.getHorizonLongitudeInterval(viewingPosition, latitudeRad);
 			final float circumferenceSegment = circumference * (longitudeInterval.getSize()) / Defines.PI_DOUBLED;
 			final float lat = latitudeRad;
-			PointsProducer p = new PointsProducer() {
-				@Override
-				public MJ3DPoint3D create(float relativeLengthOnRow) {
-//					System.out.println(relativeLengthOnRow);
-					MJ3DPoint3D pt;
-					float longitude;
-					if(circumferenceSegment < Defines.ALMOST_ZERO){
-						longitude = 0f;
-					}
-					else {
-						longitude = longitudeInterval.getMin() + relativeLengthOnRow * longitudeInterval.getSize();
-					}
-					pt = planetBaseShape.getPoint(lat, longitude);
-					float offset = noiseGen.fractalNoise3D(pt.getX(), pt.getY(), pt.getZ());
-					return planetBaseShape.getPoint(lat, longitude, offset);
-				}
-			};
+			Function<Float, MJ3DPoint3D> p = relativeLengthOnRow -> {
+//				System.out.println(relativeLengthOnRow);
+                MJ3DPoint3D pt;
+                float longitude;
+                if(circumferenceSegment < Defines.ALMOST_ZERO){
+                    longitude = 0f;
+                }
+                else {
+                    longitude = longitudeInterval.getMin() + relativeLengthOnRow * longitudeInterval.getSize();
+                }
+                pt = planetBaseShape.getPoint(lat, longitude);
+                float offset = noiseGen.fractalNoise3D(pt.getX(), pt.getY(), pt.getZ());
+                return planetBaseShape.getPoint(lat, longitude, offset);
+            };
 			MJ3DPointsRow row = new MJ3DPointsRow(triadSize, maxTriadSize, circumferenceSegment, p);
 			rows.add(row);
 			if(latitudeRad == maxLat){
@@ -110,26 +107,23 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 //	@Override
 //	public void create(){
 //		float delta = 50;
-//		
+//
 //		List<MJ3DPointsRow> rows = new ArrayList<>();
 //		for (int i=0; i<10; i++) {
 //			float x = -6000f + delta * i;
-//			PointsProducer p = new PointsProducer() {
-//				@Override
-//				public MJ3DPoint3D create(float relativeLengthOnRow) {
+//			Function<Float, MJ3DPoint3D> p = relativeLengthOnRow -> {
 ////					System.out.println(relativeLengthOnRow);
 //					return new MJ3DPoint3D(x, relativeLengthOnRow*10*delta, 0f);
-//				}
 //			};
 //			MJ3DPointsRow row = new MJ3DPointsRow(delta, delta*1.1f, 10*delta, p);
 //			rows.add(row);
 //		}
-//		
+//
 //		this.points = MJ3DPointsRow.getPoints(rows);
 //		for(int tmpPtIndex = 0; tmpPtIndex < this.points.length; tmpPtIndex++){
 //			points[tmpPtIndex].setMapIndex(tmpPtIndex);
 //		}
-//		
+//
 //		this.visibleTriads = MJ3DPointsRow.getTriads(rows, true, colorShade, ambientLight, vectorOfLight);
 //	}
 	

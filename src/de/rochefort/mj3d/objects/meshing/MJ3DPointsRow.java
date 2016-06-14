@@ -1,13 +1,14 @@
 package de.rochefort.mj3d.objects.meshing;
 
-import java.awt.Color;
-import java.util.List;
-import java.util.function.Predicate;
-
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.view.ColorBlender;
+
+import java.awt.Color;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class MJ3DPointsRow {
 	public enum WrappingPolicy { ALWAYS, NEVER, AUTO };
@@ -16,7 +17,7 @@ public class MJ3DPointsRow {
 	private final float minTriadSize;
 	private final float maxTriadSize;
 	private final float totalLength;
-	public MJ3DPointsRow(float minDistance, float maxDistance, float totalLength, PointsProducer producer) {
+	public MJ3DPointsRow(float minDistance, float maxDistance, float totalLength, Function<Float, MJ3DPoint3D> floatToPointFunction) {
 		if(minDistance > maxDistance){
 			throw new IllegalArgumentException("minDistance ("+minDistance+") cannot be larger than maxDistance ("+maxDistance+")!");
 		}
@@ -38,7 +39,7 @@ public class MJ3DPointsRow {
 			float relativeTriadSize = maxTriadSize / totalLength;
 			float delta = (minTriadSize - maxTriadSize) / totalLength;
 			for(int i=0; i<pointsCount; i++){
-				points[i] = producer.create(relativeLength);
+				points[i] = floatToPointFunction.apply(relativeLength);
 				relativeLengths[i] = relativeLength;
 				delta = Math.abs(i - maxIndex) * increment; 
 				relativeLength = relativeLength + relativeTriadSize - delta;
@@ -66,7 +67,7 @@ public class MJ3DPointsRow {
 			relativeLengths = new float[pointsCount];
 			float rel = 0f;
 			for(int i=0; i<pointsCount; i++){
-				points[i] = producer.create(rel);
+				points[i] = floatToPointFunction.apply(rel);
 				relativeLengths[i] = rel;
 				rel += relativeTriadSize;
 			}
