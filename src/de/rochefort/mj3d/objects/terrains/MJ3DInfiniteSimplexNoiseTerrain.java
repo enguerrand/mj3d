@@ -1,7 +1,5 @@
 package de.rochefort.mj3d.objects.terrains;
 
-import java.awt.Color;
-
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.math.randomness.FractalNoiseConfig;
 import de.rochefort.mj3d.math.randomness.FractalNoiseGenerator;
@@ -11,6 +9,8 @@ import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
 import de.rochefort.mj3d.util.PerformanceTimer;
 import de.rochefort.mj3d.view.ColorBlender;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
+
+import java.awt.Color;
 
 public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	private final long seed;
@@ -37,6 +37,9 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 
 	public MJ3DInfiniteSimplexNoiseTerrain(MJ3DViewingPosition initialViewingPosition, long seed, float visibility, float triadSize, FractalNoiseConfig fractalNoiseConfig, float seaLevel, float ambientLight, ColorScheme colorScheme) {
 		super();
+		if(visibility == Float.POSITIVE_INFINITY){
+			throw new IllegalArgumentException("Infinite Visibility is not allowed for this algorithm!");
+		}
 		this.seed = seed;
 		this.viewingPosition = initialViewingPosition;
 		this.lastRefX = initialViewingPosition.getXPos();
