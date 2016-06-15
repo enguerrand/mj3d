@@ -21,10 +21,10 @@ import java.awt.event.KeyEvent;
 	
 	public class MainWindow extends JFrame {
         private enum SampleType {
-            DIAMOND_SQUARE, SIMPLEX_NOISE, SIMPLEX_PLANET
+            DIAMOND_SQUARE, SIMPLEX_NOISE, SIMPLEX_PLANET_POLAR, SIMPLEX_PLANET_ICOSPHERICAL
         }
 		private static final long serialVersionUID = 1L;
-		private static final float DELTA_TRANS=50;
+		private static final float DELTA_TRANS=2;
 		private static final float DELTA_ROT=(float)Math.PI/20.0f;
 		private MJ3DView view;
 		private MJ3DCamera camera;
@@ -36,7 +36,7 @@ import java.awt.event.KeyEvent;
 			setLocation(new Point((int) (screenSize.width * 0.2),
 					(int) (screenSize.height * 0.1)));
 			setSize(500,500);
-			loadViewerDesign(SampleType.SIMPLEX_NOISE);
+			loadViewerDesign(SampleType.SIMPLEX_PLANET_ICOSPHERICAL);
 		 	addKeyboardShortCuts();
 		 	this.setVisible(true);
 			view.initialize();
@@ -49,12 +49,13 @@ import java.awt.event.KeyEvent;
 	
 			viewerMainPanel.setLayout(new GridLayout(1, 1));
 			boolean fog = false;
-			boolean wireframe = false;
+			boolean wireframe = true;
 			Color backgroundColor = new Color(170,185,215);
 			float ambientLight = 0.2f;
 			float visibility = 5000;
 			ColorScheme terrainColorScheme = ColorScheme.newDesertScheme();
-			
+//			ColorScheme terrainColorScheme = ColorScheme.newGrassAndBlueWaterScheme();
+
 			this.camera = new MJ3DCamera();
 
 			MJ3DMap map;
@@ -67,9 +68,13 @@ import java.awt.event.KeyEvent;
         			this.camera.setPos(new MJ3DVector(0f,0f,500f));
                     map = getSimplexNoiseMap(fog, wireframe, backgroundColor, ambientLight, visibility, terrainColorScheme);
                     break;
-                case SIMPLEX_PLANET:
+                case SIMPLEX_PLANET_POLAR:
         			this.camera.setPos(new MJ3DVector(6000f,0f,0f));
-                    map = getSimplexPlanetMap(fog, wireframe, backgroundColor, ambientLight, terrainColorScheme);
+                    map = getSimplexPlanetMapPolar(fog, wireframe, backgroundColor, ambientLight, terrainColorScheme);
+                    break;
+				case SIMPLEX_PLANET_ICOSPHERICAL:
+        			this.camera.setPos(new MJ3DVector(50f,0f,0f));
+                    map = getSimplexPlanetMapIcospherical(fog, wireframe, backgroundColor, ambientLight, terrainColorScheme);
                     break;
                 default:
                     throw new IllegalStateException("Unknown SampleType "+sampleType);
@@ -103,7 +108,7 @@ import java.awt.event.KeyEvent;
             return map;
         }
 
-        private MJ3DMap getSimplexPlanetMap(boolean fog, boolean wireframe, Color backgroundColor, float ambientLight, ColorScheme terrainColorScheme) {
+        private MJ3DMap getSimplexPlanetMapPolar(boolean fog, boolean wireframe, Color backgroundColor, float ambientLight, ColorScheme terrainColorScheme) {
             MJ3DMap map;
             long seed=700000;
             float triadSize = 100;
@@ -112,7 +117,18 @@ import java.awt.event.KeyEvent;
             this.camera.setPos(new MJ3DVector(radius + 7000f,0f,0f));
 //				FractalNoiseConfig config = new FractalNoiseConfig(5000, 2500, 1000, 500);
             FractalNoiseConfig config = new FractalNoiseConfig(100, 0, 20, 0);
-            map = MapFactorySimplexPlanet.getMap(seed, this.camera, radius, triadSize, config, backgroundColor, fog, wireframe, ambientLight, seaLevel, terrainColorScheme);
+            map = MapFactorySimplexPlanetPolar.getMap(seed, this.camera, radius, triadSize, config, backgroundColor, fog, wireframe, ambientLight, seaLevel, terrainColorScheme);
+            return map;
+        }
+
+        private MJ3DMap getSimplexPlanetMapIcospherical(boolean fog, boolean wireframe, Color backgroundColor, float ambientLight, ColorScheme terrainColorScheme) {
+            MJ3DMap map;
+            long seed=700000;
+            float triadSize = 100;
+            float seaLevel = 500;
+            float radius = 20;
+            FractalNoiseConfig config = new FractalNoiseConfig(100, 0, 20, 0);
+            map = MapFactorySimplexPlanetIcospherical.getMap(seed, this.camera, radius, triadSize, config, backgroundColor, fog, wireframe, ambientLight, seaLevel, terrainColorScheme);
             return map;
         }
 

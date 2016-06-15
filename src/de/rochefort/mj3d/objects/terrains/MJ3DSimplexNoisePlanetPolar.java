@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
+public class MJ3DSimplexNoisePlanetPolar extends MJ3DTerrain {
 	private final long seed;
 	private final MJ3DSphere planetBaseShape;
 	private final Color colorShade;
@@ -38,7 +38,7 @@ public class MJ3DSimplexNoisePlanet extends MJ3DTerrain {
 	private float ambientLight;
 	private float maxZ = Float.MIN_VALUE;
 
-	public MJ3DSimplexNoisePlanet(MJ3DViewingPosition initialViewingPosition, long seed, float visibility, float triadSize, FractalNoiseConfig fractalNoiseConfig, float seaLevel, float ambientLight, ColorScheme colorScheme, MJ3DSphere planetBaseShape) {
+	public MJ3DSimplexNoisePlanetPolar(MJ3DViewingPosition initialViewingPosition, long seed, float visibility, float triadSize, FractalNoiseConfig fractalNoiseConfig, float seaLevel, float ambientLight, ColorScheme colorScheme, MJ3DSphere planetBaseShape) {
 		super();
 		this.seed = seed;
 		this.planetBaseShape = planetBaseShape;
