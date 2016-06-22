@@ -8,6 +8,7 @@ import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,16 +22,18 @@ public class MJ3DIcospericalMesh {
     private List<int[]> triadList;
     private final List<MJ3DPoint3D> points;
     private final float radius;
+    private float edgeLength;
 
-    public MJ3DIcospericalMesh(float radius, MJ3DPoint3D center) {
+    public MJ3DIcospericalMesh(float radius, MJ3DPoint3D center, int initialRecursionCount) {
         this.radius = radius;
         this.pointIndexLoopupTable = new HashMap<>();
         this.triadList = new ArrayList<>();
         this.points = new ArrayList<>();
         this.baseShape = new MJ3DSphere(center, radius);
+        this.edgeLength = radius / (float) Math.sin(Defines.PI_DOUBLED / 5f);
         initializePoints(radius, center);
         initializeMesh();
-        for (int recursionLevel = 0; recursionLevel < 3; recursionLevel++) {
+        for (int recursionLevel = 0; recursionLevel < initialRecursionCount; recursionLevel++) {
             refineMesh();
         }
     }
@@ -47,12 +50,16 @@ public class MJ3DIcospericalMesh {
         return index;
     }
 
+    public float getEdgeLength() {
+        return edgeLength;
+    }
+
     private void initializePoints(float radius, MJ3DPoint3D center){
         // equations from https://en.wikipedia.org/wiki/Regular_icosahedron#Cartesian_coordinates
         float cx = center.getX();
         float cy = center.getY();
         float cz = center.getZ();
-        float halfEdgeLength = 0.5f * radius / (float)Math.sin(Defines.PI_DOUBLED / 5f);
+        float halfEdgeLength = 0.5f * edgeLength;
         float phi = halfEdgeLength * (1.0f + (float)Math.sqrt(5.0)) / 2.0f;
 
         addPoint(new MJ3DPoint3D(cx-halfEdgeLength, cy+phi,            cz+0));
@@ -138,17 +145,45 @@ public class MJ3DIcospericalMesh {
         addTriad(9, 8, 1);
     }
 
+    public void refineTriad(int triadIndex){
+
+    }
+
     private void refineMesh(){
         List<int[]> newTriads = new ArrayList<>();
         for(int[] triad : triadList){
-            final Integer np1 = getOrCreateMidPoint(triad[0], triad[1]);
-            final Integer np2 = getOrCreateMidPoint(triad[1], triad[2]);
-            final Integer np3 = getOrCreateMidPoint(triad[2], triad[0]);
-            newTriads.add(new int[]{np1,        np2,        np3 });
-            newTriads.add(new int[]{triad[0],   np1,        np3 });
-            newTriads.add(new int[]{np3,        np2,        triad[2] });
-            newTriads.add(new int[]{np1,        triad[1],   np2 });
+            int[][] resultingTriads = refineTriad(triad);
+            newTriads.addAll(Arrays.asList(resultingTriads));
         }
         triadList = newTriads;
+    }
+
+    /**
+     * Refines the whole mesh to the desired recursion depth.
+     *
+     * @param pointRecursionDepths two dimensional array that has all point indices in the first
+     *                             column and the respective recursion depth requested for the point
+     *                             in the second column
+     */
+    public void refineMesh(int[][] pointRecursionDepths){
+        for(int row=0; row<pointRecursionDepths.length; row++){
+            int pointIndex = pointRecursionDepths[row][0];
+            int recursionDepth = pointRecursionDepths[row][1];
+            final List<MJ3DTriad> triads = points.get(pointIndex).getTriads();
+            // TODO refine triad if needed
+            // here?
+        }
+    }
+
+    private int[][] refineTriad(int[] triad) {
+        final Integer np1 = getOrCreateMidPoint(triad[0], triad[1]);
+        final Integer np2 = getOrCreateMidPoint(triad[1], triad[2]);
+        final Integer np3 = getOrCreateMidPoint(triad[2], triad[0]);
+        int[][] resultingTriads = new int[4][3];
+        resultingTriads[0] = new int[]{np1,        np2,        np3      };
+        resultingTriads[1] = new int[]{triad[0],   np1,        np3      };
+        resultingTriads[2] = new int[]{np3,        np2,        triad[2] };
+        resultingTriads[3] = new int[]{np1,        triad[1],   np2      };
+        return resultingTriads;
     }
 }
