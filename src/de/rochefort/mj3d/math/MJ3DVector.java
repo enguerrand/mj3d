@@ -1,10 +1,10 @@
 package de.rochefort.mj3d.math;
 
+import de.rochefort.mj3d.objects.MJ3DObject;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
-
-import de.rochefort.mj3d.objects.MJ3DObject;
 
 public class MJ3DVector implements MJ3DObject {
 	public enum UnitVectorType {X, Y, Z};
@@ -133,6 +133,12 @@ public class MJ3DVector implements MJ3DObject {
 	public static float dotProduct (MJ3DVector vect1, MJ3DVector vect2) {
 		return vect1.x * vect2.x + vect1.y * vect2.y + vect1.z * vect2.z;
 	}
+
+	public static MJ3DVector mean(MJ3DVector vect1, MJ3DVector vect2){
+        final MJ3DVector sum = vect1.add(vect2);
+        sum.scale(0.5f);
+        return sum;
+    }
 	
 	public static Comparator<MJ3DVector> getXyzComparator(){
 		return new Comparator<MJ3DVector>() {

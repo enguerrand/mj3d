@@ -3,7 +3,6 @@ package de.rochefort.mj3d.objects.meshing;
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
-import de.rochefort.mj3d.view.ColorBlender;
 
 import java.awt.Color;
 import java.util.List;
@@ -158,11 +157,7 @@ public class MJ3DPointsRow {
 	}
 
 	private static MJ3DTriad createTriad(MJ3DPoint3D[] pts, Color triadColor, float ambientLight, MJ3DVector vectorOfLight, float illuminationFactor, boolean reverseSurfaceNormal) {
-		MJ3DTriad t =new MJ3DTriad(pts);
-		t.updateSurfaceNormal(reverseSurfaceNormal);
-		float lighting = ambientLight - illuminationFactor * (MJ3DVector.dotProduct(vectorOfLight, t.getNormal()) -1);
-		t.setColor(ColorBlender.scaleColor(triadColor, lighting));
-		return t;
+		return new MJ3DTriad(pts, triadColor, reverseSurfaceNormal, ambientLight, illuminationFactor, vectorOfLight);
 	}
 	
 	public static MJ3DPoint3D[] getPoints(List<MJ3DPointsRow> rows){

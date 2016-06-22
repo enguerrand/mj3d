@@ -1,6 +1,8 @@
 package de.rochefort.mj3d.objects.meshing;
 
 import de.rochefort.mj3d.math.Defines;
+import de.rochefort.mj3d.math.MJ3DSphere;
+import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 
@@ -14,18 +16,23 @@ import java.util.Map;
  * Created by edr on 6/15/16.
  */
 public class MJ3DIcospericalMesh {
+    private final MJ3DSphere baseShape;
     private final Map<Long, Integer> pointIndexLoopupTable;
-    private final List<int[]> triadList;
+    private List<int[]> triadList;
     private final List<MJ3DPoint3D> points;
     private final float radius;
 
-    public MJ3DIcospericalMesh(float radius) {
+    public MJ3DIcospericalMesh(float radius, MJ3DPoint3D center) {
         this.radius = radius;
         this.pointIndexLoopupTable = new HashMap<>();
         this.triadList = new ArrayList<>();
         this.points = new ArrayList<>();
-        initializePoints();
+        this.baseShape = new MJ3DSphere(center, radius);
+        initializePoints(radius, center);
         initializeMesh();
+        for (int recursionLevel = 0; recursionLevel < 3; recursionLevel++) {
+            refineMesh();
+        }
     }
 
     private void addTriad(int index1, int index2, int index3){
@@ -40,27 +47,55 @@ public class MJ3DIcospericalMesh {
         return index;
     }
 
-    private void initializePoints(){
+    private void initializePoints(float radius, MJ3DPoint3D center){
         // equations from https://en.wikipedia.org/wiki/Regular_icosahedron#Cartesian_coordinates
-        float halfEdgeLength = radius / (float)Math.sin(Defines.PI_DOUBLED / 5f);
+        float cx = center.getX();
+        float cy = center.getY();
+        float cz = center.getZ();
+        float halfEdgeLength = 0.5f * radius / (float)Math.sin(Defines.PI_DOUBLED / 5f);
         float phi = halfEdgeLength * (1.0f + (float)Math.sqrt(5.0)) / 2.0f;
-        addPoint(new MJ3DPoint3D(-halfEdgeLength,  phi,  0));
-        addPoint(new MJ3DPoint3D( halfEdgeLength,  phi,  0));
-        addPoint(new MJ3DPoint3D(-halfEdgeLength, -phi,  0));
-        addPoint(new MJ3DPoint3D( halfEdgeLength, -phi,  0));
 
-        addPoint(new MJ3DPoint3D( 0, -halfEdgeLength,  phi));
-        addPoint(new MJ3DPoint3D( 0,  halfEdgeLength,  phi));
-        addPoint(new MJ3DPoint3D( 0, -halfEdgeLength, -phi));
-        addPoint(new MJ3DPoint3D( 0,  halfEdgeLength, -phi));
+        addPoint(new MJ3DPoint3D(cx-halfEdgeLength, cy+phi,            cz+0));
+        addPoint(new MJ3DPoint3D(cx+halfEdgeLength, cy+phi,            cz+0));
+        addPoint(new MJ3DPoint3D(cx-halfEdgeLength, cy-phi,            cz+0));
+        addPoint(new MJ3DPoint3D(cx+halfEdgeLength, cy-phi,            cz+0));
 
-        addPoint(new MJ3DPoint3D( phi,  0, -halfEdgeLength));
-        addPoint(new MJ3DPoint3D( phi,  0,  halfEdgeLength));
-        addPoint(new MJ3DPoint3D(-phi,  0, -halfEdgeLength));
-        addPoint(new MJ3DPoint3D(-phi,  0,  halfEdgeLength));
+        addPoint(new MJ3DPoint3D(cx+0,              cy-halfEdgeLength, cz+phi));
+        addPoint(new MJ3DPoint3D(cx+0,              cy+halfEdgeLength, cz+phi));
+        addPoint(new MJ3DPoint3D(cx+0,              cy-halfEdgeLength, cz-phi));
+        addPoint(new MJ3DPoint3D(cx+0,              cy+halfEdgeLength, cz-phi));
+
+        addPoint(new MJ3DPoint3D(cx+phi,            cy,                cz-halfEdgeLength));
+        addPoint(new MJ3DPoint3D(cx+phi,            cy,                cz+halfEdgeLength));
+        addPoint(new MJ3DPoint3D(cx-phi,            cy,                cz-halfEdgeLength));
+        addPoint(new MJ3DPoint3D(cx-phi,            cy,                cz+halfEdgeLength));
     }
 
-    public MJ3DTriad[] buildTriads(){
+    private Integer getOrCreateMidPoint(int indexPointA, int indexPointB){
+        int firstIndex;
+        int secondIndex;
+        if(indexPointB >= indexPointA){
+            firstIndex = indexPointA;
+            secondIndex = indexPointB;
+        } else {
+            firstIndex = indexPointB;
+            secondIndex = indexPointA;
+        }
+        Long midPointIndexKey = ((long)firstIndex << 32) + secondIndex;
+        Integer midPointIndex = pointIndexLoopupTable.get(midPointIndexKey);
+        final MJ3DPoint3D midPoint;
+        if(midPointIndex != null) {
+            midPoint = points.get(pointIndexLoopupTable.get(midPointIndexKey));
+        } else {
+            midPoint = baseShape.buildMidPoint(points.get(firstIndex), points.get(secondIndex));
+            midPointIndex = addPoint(midPoint);
+            pointIndexLoopupTable.put(midPointIndexKey, midPointIndex);
+        }
+        return midPointIndex;
+    }
+
+    public MJ3DTriad[] buildTriads(Color triadColor, boolean reverseSurfaceNormal, float ambientLight, MJ3DVector vectorOfLight){
+        float illuminationFactor = (1f - ambientLight) *0.5f;
         MJ3DTriad[] triads = new MJ3DTriad[triadList.size()];
         final int size = this.triadList.size();
         for(int index = 0; index < size; index++){
@@ -68,7 +103,7 @@ public class MJ3DIcospericalMesh {
             for (int i=0; i<3; i++) {
                 pts[i] = points.get(triadList.get(index)[i]);
             }
-            triads[index] = new MJ3DTriad(pts, Color.RED);
+            triads[index] = new MJ3DTriad(pts, triadColor, reverseSurfaceNormal, ambientLight, illuminationFactor, vectorOfLight);
         }
         return triads;
 
@@ -101,5 +136,19 @@ public class MJ3DIcospericalMesh {
         addTriad(6, 2, 10);
         addTriad(8, 6, 7);
         addTriad(9, 8, 1);
+    }
+
+    private void refineMesh(){
+        List<int[]> newTriads = new ArrayList<>();
+        for(int[] triad : triadList){
+            final Integer np1 = getOrCreateMidPoint(triad[0], triad[1]);
+            final Integer np2 = getOrCreateMidPoint(triad[1], triad[2]);
+            final Integer np3 = getOrCreateMidPoint(triad[2], triad[0]);
+            newTriads.add(new int[]{np1,        np2,        np3 });
+            newTriads.add(new int[]{triad[0],   np1,        np3 });
+            newTriads.add(new int[]{np3,        np2,        triad[2] });
+            newTriads.add(new int[]{np1,        triad[1],   np2 });
+        }
+        triadList = newTriads;
     }
 }

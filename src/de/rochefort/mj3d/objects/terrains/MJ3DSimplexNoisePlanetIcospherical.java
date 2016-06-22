@@ -26,10 +26,10 @@ public class MJ3DSimplexNoisePlanetIcospherical extends MJ3DTerrain {
 	private float ambientLight;
 	private float maxZ = Float.MIN_VALUE;
 
-	public MJ3DSimplexNoisePlanetIcospherical(MJ3DViewingPosition initialViewingPosition, long seed, FractalNoiseConfig fractalNoiseConfig, float seaLevel, float ambientLight, ColorScheme colorScheme, float radius) {
+	public MJ3DSimplexNoisePlanetIcospherical(MJ3DViewingPosition initialViewingPosition, long seed, FractalNoiseConfig fractalNoiseConfig, float seaLevel, float ambientLight, ColorScheme colorScheme, float radius, MJ3DPoint3D center) {
 		super();
 		this.seed = seed;
-		this.planetBaseShape = new MJ3DIcospericalMesh(radius);
+		this.planetBaseShape = new MJ3DIcospericalMesh(radius, center);
 		this.viewingPosition = initialViewingPosition;
 		this.seaLevel = seaLevel;
 		this.colorShade = colorScheme.getEarthColor();
@@ -41,7 +41,7 @@ public class MJ3DSimplexNoisePlanetIcospherical extends MJ3DTerrain {
 	
 	@Override
 	public void create(){
-        this.visibleTriads = this.planetBaseShape.buildTriads(); // FIXME Cache triads
+        this.visibleTriads = this.planetBaseShape.buildTriads(colorShade, false, ambientLight, vectorOfLight); // FIXME Cache triads
 	}
 
 	@Override

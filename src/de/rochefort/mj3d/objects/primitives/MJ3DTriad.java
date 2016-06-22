@@ -1,10 +1,11 @@
 package de.rochefort.mj3d.objects.primitives;
 
-import java.awt.Color;
-import java.util.Arrays;
-
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.objects.MJ3DObject;
+import de.rochefort.mj3d.view.ColorBlender;
+
+import java.awt.Color;
+import java.util.Arrays;
 
 public class MJ3DTriad implements MJ3DObject {
 	private MJ3DPoint3D [] points;
@@ -20,6 +21,17 @@ public class MJ3DTriad implements MJ3DObject {
 		this(points);
 		this.color = color;
 	}
+
+
+	public MJ3DTriad(MJ3DPoint3D[] points, Color color, boolean reverseSurfaceNormal, float ambientLight, float illuminationFactor, MJ3DVector vectorOfLight) {
+		this(points);
+		this.color = color;
+        updateSurfaceNormal(reverseSurfaceNormal);
+        float lighting = ambientLight - illuminationFactor * (MJ3DVector.dotProduct(vectorOfLight, getNormal()) - 1f);
+        setColor(ColorBlender.scaleColor(color, lighting));
+	}
+
+
 
 	public MJ3DPoint3D[] getPoints() {
 		return points;

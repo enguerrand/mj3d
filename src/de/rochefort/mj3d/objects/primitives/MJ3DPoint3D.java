@@ -1,16 +1,16 @@
 package de.rochefort.mj3d.objects.primitives;
 
+import de.rochefort.mj3d.math.MJ3DVector;
+import de.rochefort.mj3d.objects.MJ3DObject;
+import de.rochefort.mj3d.objects.terrains.MJ3DTerrain;
+import de.rochefort.mj3d.util.PerformanceTimer;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import de.rochefort.mj3d.math.MJ3DVector;
-import de.rochefort.mj3d.objects.MJ3DObject;
-import de.rochefort.mj3d.objects.terrains.MJ3DTerrain;
-import de.rochefort.mj3d.util.PerformanceTimer;
 
 public class MJ3DPoint3D extends MJ3DVector implements MJ3DObject {
 	private int mapIndex;
@@ -24,8 +24,12 @@ public class MJ3DPoint3D extends MJ3DVector implements MJ3DObject {
 		this.originalZ = z;
 		
 	}
-	
-	public void setMapIndex(int index) {
+
+    public MJ3DPoint3D(MJ3DVector midPointVector) {
+        this(midPointVector.getX(), midPointVector.getY(), midPointVector.getZ());
+    }
+
+    public void setMapIndex(int index) {
 		this.mapIndex = index;
 	}
 	
