@@ -1,17 +1,17 @@
 package de.rochefort.mj3d.objects.maps;
 
+import de.rochefort.mj3d.objects.MJ3DObject;
+import de.rochefort.mj3d.objects.MJ3DObjectCompound;
+import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
+import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
+import de.rochefort.mj3d.view.MJ3DViewingPosition;
+
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
-import de.rochefort.mj3d.objects.MJ3DObject;
-import de.rochefort.mj3d.objects.MJ3DObjectCompound;
-import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
-import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
-import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 class MJ3DStaticMapImpl implements MJ3DMap {
 	private final int bg;
@@ -142,7 +142,7 @@ class MJ3DStaticMapImpl implements MJ3DMap {
 	}
 
 	@Override
-	public void update(MJ3DViewingPosition newPosition) {
+	public void update(MJ3DViewingPosition newPosition, float cameraFocalDistance) {
 		
 	}
 }

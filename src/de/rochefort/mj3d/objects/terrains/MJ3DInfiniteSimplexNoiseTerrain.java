@@ -69,7 +69,7 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	}
 	
 	@Override
-	public void update(){
+	public void update(MJ3DViewingPosition viewingPosition, float cameraFocalDistance){
 		PerformanceTimer.stopInterimTime("Calling update method");
 		updatePoints();
 		createTriads();

@@ -1,14 +1,5 @@
 package de.rochefort.mj3d.objects.terrains;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import de.rochefort.mj3d.exceptions.IncompatibleMergeException;
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.math.randomness.RandomNumberGenerator;
@@ -17,6 +8,15 @@ import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
 import de.rochefort.mj3d.view.ColorBlender;
+import de.rochefort.mj3d.view.MJ3DViewingPosition;
+
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 
@@ -453,7 +453,7 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	}
 
 	@Override
-	public void update() {
+	public void update(MJ3DViewingPosition viewingPosition, float cameraFocalDistance) {
 		
 	}
 }

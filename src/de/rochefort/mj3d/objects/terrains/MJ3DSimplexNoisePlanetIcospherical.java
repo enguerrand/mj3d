@@ -46,12 +46,12 @@ public class MJ3DSimplexNoisePlanetIcospherical extends MJ3DTerrain {
 	}
 
 	@Override
-	public void update(){
+	public void update(MJ3DViewingPosition viewingPosition, float cameraFocalDistance){
         int[] pointRecursionDepths = new int[getPoints().length];
         for(int i=0; i<pointRecursionDepths.length; i++) {
             final MJ3DPoint3D mj3DPoint3D = getPoints()[i];
             float distance = mj3DPoint3D.substract(viewingPosition.getPositionVector()).getLength();
-            pointRecursionDepths[i] = computeRecursionDepth(distance);
+            pointRecursionDepths[i] = computeRecursionDepth(distance, cameraFocalDistance);
         }
         //TODO:
         // iterate over all triads and merge triads that are refined to a higher recursion depth than each of their
@@ -61,15 +61,14 @@ public class MJ3DSimplexNoisePlanetIcospherical extends MJ3DTerrain {
         this.visibleTriads = this.planetBaseShape.buildTriads(colorShade, false, ambientLight, vectorOfLight);
 	}
 
-    private int computeRecursionDepth(float distance){
-//        // TODO apply sensible formula to calculate scalingFactor
-//        int scalingFactor = (int)(this.planetBaseShape.getEdgeLength() / this.desiredRenderedTriadSize)+1;
-//        int recursion = 0;
-//        while (1<<recursion < scalingFactor){
-//            ++recursion;
-//        }
-//        return recursion;
-        return 2;
+    private int computeRecursionDepth(float distance, float cameraFocalDistance){
+        float renderedTriadSize = this.planetBaseShape.getEdgeLength() * cameraFocalDistance / (distance - cameraFocalDistance);
+        int scalingFactor = (int)(renderedTriadSize/ this.desiredRenderedTriadSize)+1;
+        int recursion = 0;
+        while (1<<recursion < scalingFactor){
+            ++recursion;
+        }
+        return recursion;
     }
 
 	@Override

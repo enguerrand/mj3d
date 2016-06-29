@@ -1,10 +1,10 @@
 package de.rochefort.mj3d.objects.maps;
 
-import java.awt.Color;
-
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.terrains.MJ3DTerrain;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
+
+import java.awt.Color;
 
 public class MJ3DDynamicMapImpl implements MJ3DMap{
 
@@ -19,8 +19,8 @@ public class MJ3DDynamicMapImpl implements MJ3DMap{
 		this.fog = fog;
 	}
 
-	public void update(MJ3DViewingPosition newPosition){
-		terrain.update();
+	public void update(MJ3DViewingPosition viewingPosition, float cameraFocalDistance){
+		terrain.update(viewingPosition, cameraFocalDistance);
 	}
 	
 	@Override

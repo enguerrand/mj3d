@@ -133,7 +133,7 @@ public class MJ3DSimplexNoisePlanetPolar extends MJ3DTerrain {
 	}
 	
 	@Override
-	public void update(){
+	public void update(MJ3DViewingPosition viewingPosition, float cameraFocalDistance){
 		PerformanceTimer.stopInterimTime("enter update method");
 		float distanceToSurface = this.planetBaseShape.getDistanceToSurface(this.viewingPosition);
 //		System.out.println("Distance to surface: "+distanceToSurface);

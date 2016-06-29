@@ -4,13 +4,13 @@ import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 public interface MJ3DMap {
-	public int getPointsCount();
-	public int getBackgroundColor();
-	public void update(MJ3DViewingPosition newPosition);
-	public boolean isFoggy();
-	public boolean isWireframe();
-	public int getTriadCount();
-	public MJ3DPoint3D[] getPoints();
-	public int[][] getTriadPointIndices();
-	public int[] getPointColors();
+	int getPointsCount();
+	int getBackgroundColor();
+	void update(MJ3DViewingPosition newPosition, float cameraFocalDistance);
+	boolean isFoggy();
+	boolean isWireframe();
+	int getTriadCount();
+	MJ3DPoint3D[] getPoints();
+	int[][] getTriadPointIndices();
+	int[] getPointColors();
 }

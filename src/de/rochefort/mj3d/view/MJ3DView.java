@@ -1,15 +1,15 @@
 package de.rochefort.mj3d.view;
 
+import de.rochefort.mj3d.objects.maps.MJ3DMap;
+
+import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
-import javax.swing.JPanel;
-
-import de.rochefort.mj3d.objects.maps.MJ3DMap;
-
 public class MJ3DView extends JPanel{
+    public static final float PERSPECTIVE_FACTOR = 0.75f;
 	private static final long serialVersionUID = 1L;
 	private MJ3DCamera camera;
 	private float ex=0;
@@ -39,7 +39,7 @@ public class MJ3DView extends JPanel{
 		currentHeight = getVisibleRect().height;
 		ey=-currentWidth/2f;
 		ez=-currentHeight/2f;
-		ex=-0.75f*(ez+ey); 
+		ex=-PERSPECTIVE_FACTOR*(ez+ey);
 	}
 
 	protected void paintComponent(Graphics g) {

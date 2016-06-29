@@ -60,7 +60,8 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 		PerformanceTimer.start();
 		MJ3DMatrix rotationMatrix = new MJ3DMatrix(orientation);
 
-		map.update(this);
+        //TODO focal distance?!? 0.2m is probably not too bad
+		map.update(this, 0.2f);
 		PerformanceTimer.stopInterimTime("exit update method");
 		MJ3DVector[] points = map.getPoints();
 		int[][] triadPoints = map.getTriadPointIndices();

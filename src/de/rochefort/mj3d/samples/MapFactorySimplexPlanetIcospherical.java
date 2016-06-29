@@ -23,7 +23,7 @@ public class MapFactorySimplexPlanetIcospherical {
 	}
 
 	private static MJ3DSimplexNoisePlanetIcospherical getDynamicTerrain(long seed, MJ3DViewingPosition cameraPosition, float radius, float triadSize, FractalNoiseConfig config, float ambientLight, float sealevel, ColorScheme colorScheme, MJ3DPoint3D center) {
-        MJ3DSimplexNoisePlanetIcospherical terrain = new MJ3DSimplexNoisePlanetIcospherical(cameraPosition, 0L, config, 0, ambientLight, colorScheme, radius, center, 10);
+        MJ3DSimplexNoisePlanetIcospherical terrain = new MJ3DSimplexNoisePlanetIcospherical(cameraPosition, 0L, config, 0, ambientLight, colorScheme, radius, center, 0.02f);
 		terrain.create();
 		return terrain;
 	}
