@@ -43,32 +43,33 @@ public class MJ3DSimplexNoisePlanetIcospherical extends MJ3DTerrain {
 	
 	@Override
 	public void create(){
-        this.visibleTriads = this.planetBaseShape.buildTriads(colorShade, false, ambientLight, vectorOfLight);
 	}
 
 	@Override
 	public void update(){
-        int[][] pointRecursionDepths = new int[getPoints().length][2];
+        int[] pointRecursionDepths = new int[getPoints().length];
         for(int i=0; i<pointRecursionDepths.length; i++) {
             final MJ3DPoint3D mj3DPoint3D = getPoints()[i];
             float distance = mj3DPoint3D.substract(viewingPosition.getPositionVector()).getLength();
-            int recursionDepth = computeRecursionDepth(distance);
-            //TODO:
-            // iterate over all triads and merge triads that are refined to a higher recursion depth than each of their
-            //      respective points
-            // iterate over all triads and refine them to the maximum recursion depth of their respective points
+            pointRecursionDepths[i] = computeRecursionDepth(distance);
         }
+        //TODO:
+        // iterate over all triads and merge triads that are refined to a higher recursion depth than each of their
+        //      respective points
+        // iterate over all triads and refine them to the maximum recursion depth of their respective points
         this.planetBaseShape.refineMesh(pointRecursionDepths);
+        this.visibleTriads = this.planetBaseShape.buildTriads(colorShade, false, ambientLight, vectorOfLight);
 	}
 
     private int computeRecursionDepth(float distance){
-        // TODO apply sensible formula to calculate scalingFactor
-        int scalingFactor = (int)(this.planetBaseShape.getEdgeLength() / this.desiredRenderedTriadSize)+1;
-        int recursion = 0;
-        while (1<<recursion < scalingFactor){
-            ++recursion;
-        }
-        return recursion;
+//        // TODO apply sensible formula to calculate scalingFactor
+//        int scalingFactor = (int)(this.planetBaseShape.getEdgeLength() / this.desiredRenderedTriadSize)+1;
+//        int recursion = 0;
+//        while (1<<recursion < scalingFactor){
+//            ++recursion;
+//        }
+//        return recursion;
+        return 2;
     }
 
 	@Override
