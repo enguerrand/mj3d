@@ -53,11 +53,7 @@ public class MJ3DSimplexNoisePlanetIcospherical extends MJ3DTerrain {
             float distance = mj3DPoint3D.substract(viewingPosition.getPositionVector()).getLength();
             pointRecursionDepths[i] = computeRecursionDepth(distance, cameraFocalDistance);
         }
-        //TODO:
-        // iterate over all triads and merge triads that are refined to a higher recursion depth than each of their
-        //      respective points
-        // iterate over all triads and refine them to the maximum recursion depth of their respective points
-        this.planetBaseShape.refineMesh(pointRecursionDepths);
+        this.planetBaseShape.adjustMesh(pointRecursionDepths);
         this.visibleTriads = this.planetBaseShape.buildTriads(colorShade, false, ambientLight, vectorOfLight);
 	}
 

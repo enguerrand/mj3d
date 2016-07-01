@@ -17,5 +17,4 @@ public class MJ3DPoint2D {
 	public int getY(){
 		return pos[1];
 	}
-
 }
