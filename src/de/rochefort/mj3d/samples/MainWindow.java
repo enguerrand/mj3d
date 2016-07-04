@@ -24,7 +24,7 @@ import java.awt.event.KeyEvent;
             DIAMOND_SQUARE, SIMPLEX_NOISE, SIMPLEX_PLANET_POLAR, SIMPLEX_PLANET_ICOSPHERICAL
         }
 		private static final long serialVersionUID = 1L;
-		private static final float DELTA_TRANS=2;
+		private static final float DELTA_TRANS=200;
 		private static final float DELTA_ROT=(float)Math.PI/20.0f;
 		private MJ3DView view;
 		private MJ3DCamera camera;
@@ -52,7 +52,7 @@ import java.awt.event.KeyEvent;
 			boolean wireframe = true;
 			Color backgroundColor = new Color(170,185,215);
 			float ambientLight = 0.2f;
-			float visibility = 5000;
+			float visibility = 50_000;
 			ColorScheme terrainColorScheme = ColorScheme.newDesertScheme();
 //			ColorScheme terrainColorScheme = ColorScheme.newGrassAndBlueWaterScheme();
 
@@ -69,11 +69,9 @@ import java.awt.event.KeyEvent;
                     map = getSimplexNoiseMap(fog, wireframe, backgroundColor, ambientLight, visibility, terrainColorScheme);
                     break;
                 case SIMPLEX_PLANET_POLAR:
-        			this.camera.setPos(new MJ3DVector(6000f,0f,0f));
                     map = getSimplexPlanetMapPolar(fog, wireframe, backgroundColor, ambientLight, terrainColorScheme);
                     break;
 				case SIMPLEX_PLANET_ICOSPHERICAL:
-        			this.camera.setPos(new MJ3DVector(50f,0f,0f));
                     map = getSimplexPlanetMapIcospherical(fog, wireframe, backgroundColor, ambientLight, terrainColorScheme);
                     break;
                 default:
@@ -114,9 +112,9 @@ import java.awt.event.KeyEvent;
             float triadSize = 100;
             float seaLevel = 500;
             float radius = 15000;
-            this.camera.setPos(new MJ3DVector(radius + 7000f,0f,0f));
 //				FractalNoiseConfig config = new FractalNoiseConfig(5000, 2500, 1000, 500);
             FractalNoiseConfig config = new FractalNoiseConfig(100, 0, 20, 0);
+            this.camera.setPos(new MJ3DVector(radius + 7000f,0f,0f));
             map = MapFactorySimplexPlanetPolar.getMap(seed, this.camera, radius, triadSize, config, backgroundColor, fog, wireframe, ambientLight, seaLevel, terrainColorScheme);
             return map;
         }
@@ -126,9 +124,11 @@ import java.awt.event.KeyEvent;
             long seed=700000;
             float triadSize = 100;
             float seaLevel = 500;
-            float radius = 20;
-            FractalNoiseConfig config = new FractalNoiseConfig(100, 0, 20, 0);
-            map = MapFactorySimplexPlanetIcospherical.getMap(seed, this.camera, radius, triadSize, config, backgroundColor, fog, wireframe, ambientLight, seaLevel, terrainColorScheme);
+            float radius = 15_000;
+            FractalNoiseConfig config = new FractalNoiseConfig(radius + 7000, 0, 20, 0);
+            this.camera.setPos(new MJ3DVector(radius + 700f,0f,0f));
+            map = MapFactorySimplexPlanetIcospherical.getMap(seed, this.camera, radius, triadSize, config, backgroundColor,
+					fog, wireframe, ambientLight, seaLevel, terrainColorScheme);
             return map;
         }
 

@@ -5,6 +5,7 @@ import de.rochefort.mj3d.math.MJ3DSphere;
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
+import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -19,11 +20,13 @@ import java.util.Map.Entry;
  * Created by edr on 6/15/16.
  */
 public class MJ3DIcospericalMesh {
+    public final static int RECURSION_DEPTH_INVISIBLE = -1;
     private final MJ3DSphere baseShape;
     private List<Triad> triadList;
     private final float radius;
     private float edgeLength;
     private final PointsContainer pointsContainer;
+    private Object initialEdgelength;
 
     public MJ3DIcospericalMesh(float radius, MJ3DPoint3D center, int initialRecursionCount) {
         this.pointsContainer = new PointsContainer();
@@ -123,6 +126,10 @@ public class MJ3DIcospericalMesh {
         mergeTriads(triadsTooSmall);
     }
 
+    public float getDistanceToHorizon(MJ3DViewingPosition viewingPosition) {
+        return ((float)Math.sqrt(this.baseShape.getDistanceToHorizonSquared(viewingPosition))) + edgeLength ;
+    }
+
     private List<Triad> splitTriads(int[] pointRecursionDepths) {
         List<Triad> triadsTooSmall = new ArrayList<>();
         List<Triad> triadsToAdd = new ArrayList<>();
@@ -134,13 +141,22 @@ public class MJ3DIcospericalMesh {
             int actualMaxDepth = 0;
             int minDepth = Integer.MAX_VALUE;
             int maxDepth = 0;
+            boolean renderTriad = true;
             for (int verticeIndex = 0; verticeIndex < 3; verticeIndex++) {
                 final int ptIndex = ptIndices[verticeIndex];
-                actualMaxDepth = Math.max(actualMaxDepth, pointsContainer.getPointRefinementLevel(ptIndex));
                 final int depth = pointRecursionDepths[ptIndex];
+                if(depth == RECURSION_DEPTH_INVISIBLE){
+                    renderTriad = false;
+                    break;
+                }
+                actualMaxDepth = Math.max(actualMaxDepth, pointsContainer.getPointRefinementLevel(ptIndex));
                 verticeRecursionDepths[verticeIndex] = depth;
                 maxDepth = Math.max(maxDepth, depth);
                 minDepth = Math.min(minDepth, depth);
+            }
+            if(!renderTriad){
+                triadsTooSmall.add(next);
+                continue;
             }
             int deltaRefinementDepth = maxDepth - actualMaxDepth;
             if(deltaRefinementDepth > 0) {
