@@ -167,9 +167,16 @@ public class MJ3DSphere {
 	public MJ3DPoint3D buildMidPoint(MJ3DPoint3D pointA, MJ3DPoint3D pointB) {
 		MJ3DVector directMidVector = MJ3DVector.mean(pointA, pointB);
 		MJ3DVector directMidVectorRelativeToCenter = directMidVector.substract(center);
-        directMidVectorRelativeToCenter.scale(radius / directMidVectorRelativeToCenter.getLength());
+        directMidVectorRelativeToCenter.scale(radius/ directMidVectorRelativeToCenter.getLength());
         MJ3DVector midPointVector=center.add(directMidVectorRelativeToCenter);
         MJ3DPoint3D midPoint = new MJ3DPoint3D(midPointVector);
         return midPoint;
 	}
+
+    public void offsetFromSurface(MJ3DPoint3D point, float offset) {
+        final MJ3DVector translation = point.substract(center);
+        translation.scaleToUnitLength();
+        translation.scale(offset);
+        point.translate(translation);
+    }
 }

@@ -125,8 +125,9 @@ import java.awt.event.KeyEvent;
             float triadSize = 100;
             float seaLevel = 500;
             float radius = 15_000;
-            FractalNoiseConfig config = new FractalNoiseConfig(radius + 7000, 0, 20, 0);
-            this.camera.setPos(new MJ3DVector(radius + 700f,0f,0f));
+//            FractalNoiseConfig config = new FractalNoiseConfig(radius, 0, 20, 0);
+            FractalNoiseConfig config = new FractalNoiseConfig(200, 150, 100, 50);
+            this.camera.setPos(new MJ3DVector(radius + 2000f,0f,0f));
             map = MapFactorySimplexPlanetIcospherical.getMap(seed, this.camera, radius, triadSize, config, backgroundColor,
 					fog, wireframe, ambientLight, seaLevel, terrainColorScheme);
             return map;

@@ -35,14 +35,14 @@ public class MJ3DSimplexNoisePlanetIcospherical extends MJ3DTerrain {
 		this.seed = seed;
         this.minRecursionDepth = minRecursionDepth;
         this.desiredRenderedTriadSize = desiredRenderedTriadSize;
-        this.planetBaseShape = new MJ3DIcospericalMesh(radius, center, 2);
+		this.noiseGen = new FractalNoiseGenerator(this.seed, fractalNoiseConfig);
+        this.planetBaseShape = new MJ3DIcospericalMesh(radius, center, this.noiseGen);
 		this.viewingPosition = initialViewingPosition;
 		this.seaLevel = seaLevel;
 		this.colorShade = colorScheme.getEarthColor();
 		this.seaColorShallow = colorScheme.getSeaColorShallow().getRGB();
 		this.seaColorDeep = colorScheme.getSeaColorDeep().getRGB();
 		this.ambientLight = ambientLight;
-		this.noiseGen = new FractalNoiseGenerator(this.seed, fractalNoiseConfig);
         float edgeLength = this.planetBaseShape.getEdgeLength();
         this.maxRecursionDepth = 1 + (int)(Math.log(triadSize/edgeLength) / Math.log(0.5));
 	}

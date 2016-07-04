@@ -3,6 +3,7 @@ package de.rochefort.mj3d.objects.meshing;
 import de.rochefort.mj3d.math.Defines;
 import de.rochefort.mj3d.math.MJ3DSphere;
 import de.rochefort.mj3d.math.MJ3DVector;
+import de.rochefort.mj3d.math.randomness.FractalNoiseGenerator;
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
@@ -22,13 +23,14 @@ import java.util.Map.Entry;
 public class MJ3DIcospericalMesh {
     public final static int RECURSION_DEPTH_INVISIBLE = -1;
     private final MJ3DSphere baseShape;
+    private final FractalNoiseGenerator noiseGen;
     private List<Triad> triadList;
     private final float radius;
     private float edgeLength;
     private final PointsContainer pointsContainer;
-    private Object initialEdgelength;
 
-    public MJ3DIcospericalMesh(float radius, MJ3DPoint3D center, int initialRecursionCount) {
+    public MJ3DIcospericalMesh(float radius, MJ3DPoint3D center, FractalNoiseGenerator noiseGen) {
+        this.noiseGen = noiseGen;
         this.pointsContainer = new PointsContainer();
         this.radius = radius;
         this.triadList = new ArrayList<>();
@@ -232,6 +234,7 @@ public class MJ3DIcospericalMesh {
 
         int addPoint(MJ3DPoint3D point, int refinementLevel){
             final int index = points.size();
+            baseShape.offsetFromSurface(point, noiseGen.fractalNoise3D(point.getX(), point.getY(), point.getZ()));
             this.points.add(point);
             this.pointRefinementLevels.add(refinementLevel);
             point.setMapIndex(index);
