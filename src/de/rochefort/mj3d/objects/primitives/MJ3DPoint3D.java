@@ -22,7 +22,6 @@ public class MJ3DPoint3D extends MJ3DVector implements MJ3DObject {
 	public MJ3DPoint3D(float x, float y, float z) {
 		super(x,y,z);
 		this.originalZ = z;
-		
 	}
 
     public MJ3DPoint3D(MJ3DVector midPointVector) {
