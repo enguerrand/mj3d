@@ -53,8 +53,8 @@ import java.awt.event.KeyEvent;
 			Color backgroundColor = new Color(170,185,215);
 			float ambientLight = 0.2f;
 			float visibility = 50_000;
-			ColorScheme terrainColorScheme = ColorScheme.newDesertScheme();
-//			ColorScheme terrainColorScheme = ColorScheme.newGrassAndBlueWaterScheme();
+//			ColorScheme terrainColorScheme = ColorScheme.newDesertScheme();
+			ColorScheme terrainColorScheme = ColorScheme.newGrassAndBlueWaterScheme();
 
 			this.camera = new MJ3DCamera();
 
@@ -66,6 +66,7 @@ import java.awt.event.KeyEvent;
                     break;
                 case SIMPLEX_NOISE:
         			this.camera.setPos(new MJ3DVector(0f,0f,500f));
+        			visibility = 5_000;
                     map = getSimplexNoiseMap(fog, wireframe, backgroundColor, ambientLight, visibility, terrainColorScheme);
                     break;
                 case SIMPLEX_PLANET_POLAR:
@@ -99,7 +100,7 @@ import java.awt.event.KeyEvent;
             MJ3DMap map;
             long seed=700000;
             float triadSize = 100;
-            float seaLevel = 500;
+            float seaLevel = 100;
             int width = (int)(2*visibility/triadSize)+1;
             FractalNoiseConfig config = new FractalNoiseConfig(1500, 500, 500, 100);
             map = MapFactorySimplexNoise.getMap(seed, this.camera, width, triadSize, config, backgroundColor, fog, wireframe, ambientLight, seaLevel, terrainColorScheme);
