@@ -16,6 +16,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * Created by edr on 6/15/16.
@@ -27,22 +29,27 @@ public class MJ3DIcospericalMesh {
     private final float radius;
     private float edgeLength;
     private final TriadContainer triadsContainer;
-    private final PointsContainer pointsContainer;
 
     public MJ3DIcospericalMesh(float radius, MJ3DPoint3D center, FractalNoiseGenerator noiseGen) {
         this.noiseGen = noiseGen;
-        this.pointsContainer = new PointsContainer();
-        this.triadsContainer = new TriadContainer(pointsContainer);
         this.radius = radius;
         this.baseShape = new MJ3DSphere(center, radius);
         this.edgeLength = radius / (float) Math.sin(Defines.PI_DOUBLED / 5f);
+
+        final Consumer<MJ3DPoint3D> noiseOffsetGenerator = point ->
+            this.baseShape.offsetFromSurface(point, this.noiseGen.fractalNoise3D(point.getX(), point.getY(), point.getZ()));
+
+        BiFunction<MJ3DPoint3D, MJ3DPoint3D, MJ3DPoint3D> midpointBuilder = (point1, point2) ->
+            this.baseShape.buildMidPoint(point1, point2);
+        this.triadsContainer = new TriadContainer(new PointsContainer(noiseOffsetGenerator, midpointBuilder));
+
         initializePoints(center);
         initializeMesh();
     }
 
     private void addTriad(int index1, int index2, int index3){
         final int[] pts = {index1, index2, index3};
-        final Triad triad = new Triad(pts, null);
+        final TriadModel triad = new TriadModel(pts, null);
         triadsContainer.addTriad(triad);
     }
 
@@ -60,20 +67,20 @@ public class MJ3DIcospericalMesh {
         float phi = halfEdgeLength * (1.0f + (float)Math.sqrt(5.0)) / 2.0f;
         int refinementLevel = 0;
 
-        pointsContainer.addPoint(new MJ3DPoint3D(cx-halfEdgeLength, cy+phi,            cz+0), refinementLevel);
-        pointsContainer.addPoint(new MJ3DPoint3D(cx+halfEdgeLength, cy+phi,            cz+0), refinementLevel);
-        pointsContainer.addPoint(new MJ3DPoint3D(cx-halfEdgeLength, cy-phi,            cz+0), refinementLevel);
-        pointsContainer.addPoint(new MJ3DPoint3D(cx+halfEdgeLength, cy-phi,            cz+0), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx-halfEdgeLength, cy+phi,            cz+0), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx+halfEdgeLength, cy+phi,            cz+0), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx-halfEdgeLength, cy-phi,            cz+0), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx+halfEdgeLength, cy-phi,            cz+0), refinementLevel);
 
-        pointsContainer.addPoint(new MJ3DPoint3D(cx+0,              cy-halfEdgeLength, cz+phi), refinementLevel);
-        pointsContainer.addPoint(new MJ3DPoint3D(cx+0,              cy+halfEdgeLength, cz+phi), refinementLevel);
-        pointsContainer.addPoint(new MJ3DPoint3D(cx+0,              cy-halfEdgeLength, cz-phi), refinementLevel);
-        pointsContainer.addPoint(new MJ3DPoint3D(cx+0,              cy+halfEdgeLength, cz-phi), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx+0,              cy-halfEdgeLength, cz+phi), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx+0,              cy+halfEdgeLength, cz+phi), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx+0,              cy-halfEdgeLength, cz-phi), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx+0,              cy+halfEdgeLength, cz-phi), refinementLevel);
 
-        pointsContainer.addPoint(new MJ3DPoint3D(cx+phi,            cy,                cz-halfEdgeLength), refinementLevel);
-        pointsContainer.addPoint(new MJ3DPoint3D(cx+phi,            cy,                cz+halfEdgeLength), refinementLevel);
-        pointsContainer.addPoint(new MJ3DPoint3D(cx-phi,            cy,                cz-halfEdgeLength), refinementLevel);
-        pointsContainer.addPoint(new MJ3DPoint3D(cx-phi,            cy,                cz+halfEdgeLength), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx+phi,            cy,                cz-halfEdgeLength), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx+phi,            cy,                cz+halfEdgeLength), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx-phi,            cy,                cz-halfEdgeLength), refinementLevel);
+        triadsContainer.addPoint(new MJ3DPoint3D(cx-phi,            cy,                cz+halfEdgeLength), refinementLevel);
     }
 
     public MJ3DTriad[] buildTriads(Color triadColor, boolean reverseSurfaceNormal, float ambientLight, MJ3DVector vectorOfLight){
@@ -84,7 +91,7 @@ public class MJ3DIcospericalMesh {
         for(int triadIndex = 0; triadIndex < size; triadIndex++){
             MJ3DPoint3D[] pts = new MJ3DPoint3D[3];
             for (int i=0; i<3; i++) {
-                pts[i] = pointsContainer.getPointAtIndex(triadsContainer.getTriadAtIndex(triadIndex).pts[i]);
+                pts[i] = triadsContainer.getPointAtIndex(triadsContainer.getTriadAtIndex(triadIndex).pts[i]);
             }
             triads[triadIndex] = new MJ3DTriad(pts, triadColor, reverseSurfaceNormal, ambientLight, illuminationFactor, vectorOfLight);
         }
@@ -93,7 +100,7 @@ public class MJ3DIcospericalMesh {
     }
 
     public MJ3DPoint3D[] getPoints(){
-       return pointsContainer.getPoints();
+       return triadsContainer.getPoints();
     }
 
 
@@ -126,48 +133,45 @@ public class MJ3DIcospericalMesh {
      * @param pointRecursionDepths recursion depth array with the respective depth at the point's index in the map
      */
     public void adjustMesh(int[] pointRecursionDepths){
-        List<Triad> triadsTooSmall = splitTriads(pointRecursionDepths);
+        List<TriadModel> triadsTooSmall = splitTriads(pointRecursionDepths);
         mergeTriads(triadsTooSmall);
         fixTransitions();
     }
 
     private void fixTransitions() {
-        List<Triad> triadsToAdd = new ArrayList<>();
-        Iterator<Triad> triadsIterator = this.triadsContainer.iterator();
+        List<TriadModel> triadsToAdd = new ArrayList<>();
+        Iterator<TriadModel> triadsIterator = this.triadsContainer.iterator();
         while(triadsIterator.hasNext()) {
-            final Triad triad = triadsIterator.next();
-            Integer midPoint1 = pointsContainer.getMidPointIfInUse(triad.pts[0], triad.pts[1]);
-            Integer midPoint2 = pointsContainer.getMidPointIfInUse(triad.pts[1], triad.pts[2]);
-            Integer midPoint3 = pointsContainer.getMidPointIfInUse(triad.pts[2], triad.pts[0]);
+            final TriadModel triad = triadsIterator.next();
+            Integer midPoint1 = triadsContainer.getMidPointIfInUse(triad.pts[0], triad.pts[1]);
+            Integer midPoint2 = triadsContainer.getMidPointIfInUse(triad.pts[1], triad.pts[2]);
+            Integer midPoint3 = triadsContainer.getMidPointIfInUse(triad.pts[2], triad.pts[0]);
             final boolean split1 = midPoint1 != null;
             final boolean split2 = midPoint2 != null;
             final boolean split3 = midPoint3 != null;
             if((split1 && split2) || (split1 && split3) || (split2 && split3)) {
                 throw new IllegalStateException("can only split at one edge!");
             } else if (split1) {
-                pointsContainer.unregisterTriad(triad);
                 triadsIterator.remove();
                 int[] newPts1 = {triad.pts[0], midPoint1, triad.pts[2]};
                 int[] newPts2 = {midPoint1, triad.pts[1],triad.pts[2]};
-                triadsToAdd.add(new Triad(newPts1, triad));
-                triadsToAdd.add(new Triad(newPts2, triad));
+                triadsToAdd.add(new TriadModel(newPts1, triad));
+                triadsToAdd.add(new TriadModel(newPts2, triad));
             } else if (split2) {
-                pointsContainer.unregisterTriad(triad);
                 triadsIterator.remove();
                 int[] newPts1 = {triad.pts[1], midPoint2, triad.pts[0]};
                 int[] newPts2 = {midPoint2, triad.pts[2],triad.pts[0]};
-                triadsToAdd.add(new Triad(newPts1, triad));
-                triadsToAdd.add(new Triad(newPts2, triad));
+                triadsToAdd.add(new TriadModel(newPts1, triad));
+                triadsToAdd.add(new TriadModel(newPts2, triad));
             } else if (split3) {
-                pointsContainer.unregisterTriad(triad);
                 triadsIterator.remove();
                 int[] newPts1 = {triad.pts[2], midPoint3, triad.pts[1]};
                 int[] newPts2 = {midPoint3, triad.pts[0],triad.pts[1]};
-                triadsToAdd.add(new Triad(newPts1, triad));
-                triadsToAdd.add(new Triad(newPts2, triad));
+                triadsToAdd.add(new TriadModel(newPts1, triad));
+                triadsToAdd.add(new TriadModel(newPts2, triad));
             }
         }
-        for (Triad triad : triadsToAdd) {
+        for (TriadModel triad : triadsToAdd) {
             triadsContainer.addTriad(triad);
         }
     }
@@ -177,12 +181,12 @@ public class MJ3DIcospericalMesh {
     }
 
 
-    private List<Triad> splitTriads(int[] pointRecursionDepths) {
-        List<Triad> triadsTooSmall = new ArrayList<>();
-        List<Triad> triadsToAdd = new ArrayList<>();
-        Iterator<Triad> triadsIterator = this.triadsContainer.iterator();
+    private List<TriadModel> splitTriads(int[] pointRecursionDepths) {
+        List<TriadModel> triadsTooSmall = new ArrayList<>();
+        List<TriadModel> triadsToAdd = new ArrayList<>();
+        Iterator<TriadModel> triadsIterator = this.triadsContainer.iterator();
         while(triadsIterator.hasNext()) {
-            final Triad nextTriad = triadsIterator.next();
+            final TriadModel nextTriad = triadsIterator.next();
             int[] verticeRecursionDepths = new int[3];
             int actualMaxDepth = 0;
             int minDepth = Integer.MAX_VALUE;
@@ -195,7 +199,7 @@ public class MJ3DIcospericalMesh {
                     renderTriad = false;
                     break;
                 }
-                actualMaxDepth = Math.max(actualMaxDepth, pointsContainer.getPointRefinementLevel(ptIndex));
+                actualMaxDepth = Math.max(actualMaxDepth, triadsContainer.getPointRefinementLevel(ptIndex));
                 verticeRecursionDepths[verticeIndex] = depth;
                 maxDepth = Math.max(maxDepth, depth);
                 minDepth = Math.min(minDepth, depth);
@@ -206,7 +210,6 @@ public class MJ3DIcospericalMesh {
             }
             int deltaRefinementDepth = maxDepth - actualMaxDepth;
             if(deltaRefinementDepth > 0) {
-                pointsContainer.unregisterTriad(nextTriad);
                 triadsIterator.remove();
                 triadsToAdd.addAll(
                         refineTriad(nextTriad, actualMaxDepth+1, deltaRefinementDepth));
@@ -214,15 +217,15 @@ public class MJ3DIcospericalMesh {
                 triadsTooSmall.add(nextTriad);
             }
         }
-        for (Triad triad : triadsToAdd) {
+        for (TriadModel triad : triadsToAdd) {
             triadsContainer.addTriad(triad);
         }
         return triadsTooSmall;
     }
 
-    private void mergeTriads(List<Triad> triadsTooSmall) {
-        Map<Triad, List<Triad>> parentTriadsToRestore = new HashMap<>();
-        for (Triad triad : triadsTooSmall) {
+    private void mergeTriads(List<TriadModel> triadsTooSmall) {
+        Map<TriadModel, List<TriadModel>> parentTriadsToRestore = new HashMap<>();
+        for (TriadModel triad : triadsTooSmall) {
             if(triad.parent == null){
                 continue;
             }
@@ -230,12 +233,12 @@ public class MJ3DIcospericalMesh {
                     t -> new ArrayList<>())
                     .add(triad);
         }
-        for (Entry<Triad, List<Triad>> triadToRestoreWithChildren : parentTriadsToRestore.entrySet()) {
-            final List<Triad> children = triadToRestoreWithChildren.getValue();
+        for (Entry<TriadModel, List<TriadModel>> triadToRestoreWithChildren : parentTriadsToRestore.entrySet()) {
+            final List<TriadModel> children = triadToRestoreWithChildren.getValue();
             if(children.size() < 4){
                 continue;
             } else {
-                for (Triad child : children) {
+                for (TriadModel child : children) {
                     triadsContainer.removeTriad(child);
                 }
                 triadsContainer.addTriad(triadToRestoreWithChildren.getKey());
@@ -243,24 +246,24 @@ public class MJ3DIcospericalMesh {
         }
     }
 
-    private List<Triad> refineTriad(Triad parent, int refinementLevel, int recursionCount) {
+    private List<TriadModel> refineTriad(TriadModel parent, int refinementLevel, int recursionCount) {
         if(recursionCount < 1){
             throw new IllegalArgumentException("Recursion count < 1 does not make sense!");
         }
-        final Integer np1 = pointsContainer.getOrCreateMidPoint(parent.pts[0], parent.pts[1], refinementLevel);
-        final Integer np2 = pointsContainer.getOrCreateMidPoint(parent.pts[1], parent.pts[2], refinementLevel);
-        final Integer np3 = pointsContainer.getOrCreateMidPoint(parent.pts[2], parent.pts[0], refinementLevel);
+        final Integer np1 = triadsContainer.getOrCreateMidPoint(parent.pts[0], parent.pts[1], refinementLevel);
+        final Integer np2 = triadsContainer.getOrCreateMidPoint(parent.pts[1], parent.pts[2], refinementLevel);
+        final Integer np3 = triadsContainer.getOrCreateMidPoint(parent.pts[2], parent.pts[0], refinementLevel);
 
-        Triad[] resultingTriads = new Triad[4];
-        resultingTriads[0] = new Triad(new int[]{np1,             np2,             np3            }, parent);
-        resultingTriads[1] = new Triad(new int[]{parent.pts[0], np1,             np3            }, parent);
-        resultingTriads[2] = new Triad(new int[]{np3,             np2,             parent.pts[2]}, parent);
-        resultingTriads[3] = new Triad(new int[]{np1,             parent.pts[1], np2            }, parent);
+        TriadModel[] resultingTriads = new TriadModel[4];
+        resultingTriads[0] = new TriadModel(new int[]{np1,             np2,             np3            }, parent);
+        resultingTriads[1] = new TriadModel(new int[]{parent.pts[0], np1,             np3            }, parent);
+        resultingTriads[2] = new TriadModel(new int[]{np3,             np2,             parent.pts[2]}, parent);
+        resultingTriads[3] = new TriadModel(new int[]{np1,             parent.pts[1], np2            }, parent);
 
         if(recursionCount == 1){
             return Arrays.asList(resultingTriads);
         } else {
-            List<Triad> result = new ArrayList<>();
+            List<TriadModel> result = new ArrayList<>();
             recursionCount--;
             refinementLevel++;
             for (int t = 0; t<4; t++){
@@ -272,7 +275,7 @@ public class MJ3DIcospericalMesh {
 
     private final class TriadContainer {
         private final PointsContainer pointsContainer;
-        private List<Triad> triadList;
+        private List<TriadModel> triadList;
         private TriadContainer(PointsContainer pointsContainer) {
             this.pointsContainer = pointsContainer;
             this.triadList = new ArrayList<>();
@@ -282,26 +285,30 @@ public class MJ3DIcospericalMesh {
             return triadList.size();
         }
 
-        Triad getTriadAtIndex(int index){
+        TriadModel getTriadAtIndex(int index){
             return triadList.get(index);
         }
 
-        private void addTriad(Triad triad) {
+        void addPoint(MJ3DPoint3D point, int refinementLevel){
+            pointsContainer.addPoint(point, refinementLevel);
+        }
+
+        private void addTriad(TriadModel triad) {
             this.pointsContainer.registerTriad(triad);
             this.triadList.add(triad);
         }
 
-        Iterator<Triad> iterator(){
-            return new Iterator<Triad>() {
-                Iterator<Triad> internalIterator = triadList.iterator();
-                Triad current = null;
+        Iterator<TriadModel> iterator(){
+            return new Iterator<TriadModel>() {
+                Iterator<TriadModel> internalIterator = triadList.iterator();
+                TriadModel current = null;
                 @Override
                 public boolean hasNext() {
                     return internalIterator.hasNext();
                 }
 
                 @Override
-                public Triad next() {
+                public TriadModel next() {
                     current = internalIterator.next();
                     return current;
                 }
@@ -314,113 +321,30 @@ public class MJ3DIcospericalMesh {
             };
         }
 
-        void removeTriad(Triad triad){
+        void removeTriad(TriadModel triad){
             pointsContainer.unregisterTriad(triad);
             triadList.remove(triad);
         }
-    }
 
-    private final class PointsContainer {
-        private final List<MJ3DPoint3D> points;
-        private final List<Integer> pointRefinementLevels;
-        private final List<List<Triad>> triadsUsingPoints;
-        private final Map<Long, Integer> pointIndexLookupTable;
-
-        PointsContainer() {
-            this.points = new ArrayList<>();
-            this.pointRefinementLevels = new ArrayList<>();
-            this.triadsUsingPoints = new ArrayList<>();
-            this.pointIndexLookupTable = new HashMap<>();
+        public Integer getOrCreateMidPoint(int pt1, int pt2, int refinementLevel) {
+            return pointsContainer.getOrCreateMidPoint(pt1, pt2, refinementLevel);
         }
 
-        void registerTriad(Triad triad){
-            for (int pt : triad.pts) {
-                List<Triad> triads = triadsUsingPoints.get(pt);
-                triads.add(triad);
-            }
+        public MJ3DPoint3D getPointAtIndex(int index) {
+            return pointsContainer.getPointAtIndex(index);
         }
 
-        void unregisterTriad(Triad triad){
-            for (int pt : triad.pts) {
-                List<Triad> triads = triadsUsingPoints.get(pt);
-                triads.remove(triad);
-            }
+        public MJ3DPoint3D[] getPoints() {
+            return pointsContainer.getPoints();
         }
 
-        int addPoint(MJ3DPoint3D point, int refinementLevel){
-            final int index = points.size();
-            baseShape.offsetFromSurface(point, noiseGen.fractalNoise3D(point.getX(), point.getY(), point.getZ()));
-            this.points.add(point);
-            this.pointRefinementLevels.add(refinementLevel);
-            this.triadsUsingPoints.add(new ArrayList<>());
-            point.setMapIndex(index);
-            return index;
+        public Integer getMidPointIfInUse(int pt1, int pt2) {
+            return pointsContainer.getMidPointIfInUse(pt1, pt2);
         }
 
-        void removePoint(int index){
-            this.points.remove(index);
-            this.pointRefinementLevels.remove(index);
-            this.triadsUsingPoints.remove(index);
-        }
-
-        Integer getMidPointIfInUse(int indexPointA, int indexPointB){
-            final Integer midPointIndex = getMidPointIfPresent(indexPointA, indexPointB);
-            if(midPointIndex == null || triadsUsingPoints.get(midPointIndex).isEmpty()){
-                return null;
-            }
-            return midPointIndex;
-        }
-
-        private Integer getMidPointIfPresent(int indexPointA, int indexPointB){
-            return pointIndexLookupTable.get(buildMidPointLookupKey(indexPointA, indexPointB));
-        }
-
-        private Integer getOrCreateMidPoint(int indexPointA, int indexPointB, int refinementLevel){
-            Long midPointIndexKey = buildMidPointLookupKey(indexPointA, indexPointB);
-            Integer midPointIndex = pointIndexLookupTable.get(midPointIndexKey);
-            final MJ3DPoint3D midPoint;
-            if(midPointIndex == null) {
-                midPoint = baseShape.buildMidPoint(points.get(indexPointA), points.get(indexPointB));
-                midPointIndex = addPoint(midPoint, refinementLevel);
-                pointIndexLookupTable.put(midPointIndexKey, midPointIndex);
-            }
-            return midPointIndex;
-        }
-
-        private Long buildMidPointLookupKey(int indexPointA, int indexPointB) {
-            int firstIndex;
-            int secondIndex;
-            if(indexPointB >= indexPointA){
-                firstIndex = indexPointA;
-                secondIndex = indexPointB;
-            } else {
-                firstIndex = indexPointB;
-                secondIndex = indexPointA;
-            }
-            return ((long)firstIndex << 32) + secondIndex;
-        }
-
-        MJ3DPoint3D getPointAtIndex(int index){
-            return points.get(index);
-        }
-
-        int getPointRefinementLevel(int index){
-            return pointRefinementLevels.get(index);
-        }
-
-        public MJ3DPoint3D[] getPoints(){
-            MJ3DPoint3D[] arr = new MJ3DPoint3D[this.points.size()];
-            return this.points.toArray(arr);
+        public int getPointRefinementLevel(int ptIndex) {
+            return pointsContainer.getPointRefinementLevel(ptIndex);
         }
     }
 
-    private static class Triad {
-        final int[] pts;
-        final Triad parent;
-
-        Triad(int[] pts, Triad parent) {
-            this.pts = pts;
-            this.parent = parent;
-        }
-    }
 }
