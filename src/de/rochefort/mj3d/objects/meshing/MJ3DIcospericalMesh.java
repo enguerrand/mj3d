@@ -135,36 +135,36 @@ public class MJ3DIcospericalMesh {
         List<Triad> triadsToAdd = new ArrayList<>();
         Iterator<Triad> triadsIterator = this.triadsContainer.iterator();
         while(triadsIterator.hasNext()) {
-            final Triad next = triadsIterator.next();
-            Integer midPoint1 = pointsContainer.getMidPointIfInUse(next.pts[0], next.pts[1]);
-            Integer midPoint2 = pointsContainer.getMidPointIfInUse(next.pts[1], next.pts[2]);
-            Integer midPoint3 = pointsContainer.getMidPointIfInUse(next.pts[2], next.pts[0]);
+            final Triad triad = triadsIterator.next();
+            Integer midPoint1 = pointsContainer.getMidPointIfInUse(triad.pts[0], triad.pts[1]);
+            Integer midPoint2 = pointsContainer.getMidPointIfInUse(triad.pts[1], triad.pts[2]);
+            Integer midPoint3 = pointsContainer.getMidPointIfInUse(triad.pts[2], triad.pts[0]);
             final boolean split1 = midPoint1 != null;
             final boolean split2 = midPoint2 != null;
             final boolean split3 = midPoint3 != null;
             if((split1 && split2) || (split1 && split3) || (split2 && split3)) {
                 throw new IllegalStateException("can only split at one edge!");
             } else if (split1) {
-                pointsContainer.unregisterTriad(next);
+                pointsContainer.unregisterTriad(triad);
                 triadsIterator.remove();
-                int[] newPts1 = {next.pts[0], midPoint1, next.pts[2]};
-                int[] newPts2 = {midPoint1, next.pts[1],next.pts[2]};
-                triadsToAdd.add(new Triad(newPts1, next));
-                triadsToAdd.add(new Triad(newPts2, next));
+                int[] newPts1 = {triad.pts[0], midPoint1, triad.pts[2]};
+                int[] newPts2 = {midPoint1, triad.pts[1],triad.pts[2]};
+                triadsToAdd.add(new Triad(newPts1, triad));
+                triadsToAdd.add(new Triad(newPts2, triad));
             } else if (split2) {
-                pointsContainer.unregisterTriad(next);
+                pointsContainer.unregisterTriad(triad);
                 triadsIterator.remove();
-                int[] newPts1 = {next.pts[1], midPoint2, next.pts[0]};
-                int[] newPts2 = {midPoint2, next.pts[2],next.pts[0]};
-                triadsToAdd.add(new Triad(newPts1, next));
-                triadsToAdd.add(new Triad(newPts2, next));
+                int[] newPts1 = {triad.pts[1], midPoint2, triad.pts[0]};
+                int[] newPts2 = {midPoint2, triad.pts[2],triad.pts[0]};
+                triadsToAdd.add(new Triad(newPts1, triad));
+                triadsToAdd.add(new Triad(newPts2, triad));
             } else if (split3) {
-                pointsContainer.unregisterTriad(next);
+                pointsContainer.unregisterTriad(triad);
                 triadsIterator.remove();
-                int[] newPts1 = {next.pts[2], midPoint3, next.pts[1]};
-                int[] newPts2 = {midPoint3, next.pts[0],next.pts[1]};
-                triadsToAdd.add(new Triad(newPts1, next));
-                triadsToAdd.add(new Triad(newPts2, next));
+                int[] newPts1 = {triad.pts[2], midPoint3, triad.pts[1]};
+                int[] newPts2 = {midPoint3, triad.pts[0],triad.pts[1]};
+                triadsToAdd.add(new Triad(newPts1, triad));
+                triadsToAdd.add(new Triad(newPts2, triad));
             }
         }
         for (Triad triad : triadsToAdd) {
@@ -324,13 +324,13 @@ public class MJ3DIcospericalMesh {
         private final List<MJ3DPoint3D> points;
         private final List<Integer> pointRefinementLevels;
         private final List<List<Triad>> triadsUsingPoints;
-        private final Map<Long, Integer> pointIndexLoopupTable;
+        private final Map<Long, Integer> pointIndexLookupTable;
 
         PointsContainer() {
             this.points = new ArrayList<>();
             this.pointRefinementLevels = new ArrayList<>();
             this.triadsUsingPoints = new ArrayList<>();
-            this.pointIndexLoopupTable = new HashMap<>();
+            this.pointIndexLookupTable = new HashMap<>();
         }
 
         void registerTriad(Triad triad){
@@ -372,17 +372,17 @@ public class MJ3DIcospericalMesh {
         }
 
         private Integer getMidPointIfPresent(int indexPointA, int indexPointB){
-            return pointIndexLoopupTable.get(buildMidPointLookupKey(indexPointA, indexPointB));
+            return pointIndexLookupTable.get(buildMidPointLookupKey(indexPointA, indexPointB));
         }
 
         private Integer getOrCreateMidPoint(int indexPointA, int indexPointB, int refinementLevel){
             Long midPointIndexKey = buildMidPointLookupKey(indexPointA, indexPointB);
-            Integer midPointIndex = pointIndexLoopupTable.get(midPointIndexKey);
+            Integer midPointIndex = pointIndexLookupTable.get(midPointIndexKey);
             final MJ3DPoint3D midPoint;
             if(midPointIndex == null) {
                 midPoint = baseShape.buildMidPoint(points.get(indexPointA), points.get(indexPointB));
                 midPointIndex = addPoint(midPoint, refinementLevel);
-                pointIndexLoopupTable.put(midPointIndexKey, midPointIndex);
+                pointIndexLookupTable.put(midPointIndexKey, midPointIndex);
             }
             return midPointIndex;
         }
