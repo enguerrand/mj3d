@@ -24,8 +24,8 @@ public class MJ3DPoint3D extends MJ3DVector implements MJ3DObject {
 		this.originalZ = z;
 	}
 
-    public MJ3DPoint3D(MJ3DVector midPointVector) {
-        this(midPointVector.getX(), midPointVector.getY(), midPointVector.getZ());
+    public MJ3DPoint3D(MJ3DVector mj3dVector) {
+        this(mj3dVector.getX(), mj3dVector.getY(), mj3dVector.getZ());
     }
 
     public void setMapIndex(int index) {

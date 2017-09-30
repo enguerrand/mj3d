@@ -13,13 +13,12 @@ public class MJ3DTriad implements MJ3DObject {
 	private Color color;
 
 	public MJ3DTriad(MJ3DPoint3D[] points) {
-		this.points = points;
-		registerWithPoints();
-//		System.out.println("New Triad: "+this);
+	    this(points, Color.WHITE);
 	}
 	public MJ3DTriad(MJ3DPoint3D[] points, Color color) {
-		this(points);
+		this.points = points;
 		this.color = color;
+		registerWithPoints();
 	}
 
 

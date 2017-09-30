@@ -2,7 +2,11 @@ package de.rochefort.mj3d.samples;
 
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.math.randomness.FractalNoiseConfig;
+import de.rochefort.mj3d.objects.MJ3DObject;
 import de.rochefort.mj3d.objects.maps.MJ3DMap;
+import de.rochefort.mj3d.objects.maps.MJ3DMapBuilder;
+import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
+import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terraingen.MapFactoryDiamondSquare;
 import de.rochefort.mj3d.objects.terraingen.MapFactorySimplexNoise;
 import de.rochefort.mj3d.objects.terraingen.MapFactorySimplexPlanetIcospherical;
@@ -10,28 +14,33 @@ import de.rochefort.mj3d.objects.terraingen.MapFactorySimplexPlanetPolar;
 import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
 import de.rochefort.mj3d.view.MJ3DCamera;
 import de.rochefort.mj3d.view.MJ3DView;
-
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-	
-	public class MainWindow extends JFrame {
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+public class MainWindow extends JFrame {
         private enum SampleType {
-            DIAMOND_SQUARE, SIMPLEX_NOISE, SIMPLEX_PLANET_POLAR, SIMPLEX_PLANET_ICOSPHERICAL
+            DIAMOND_SQUARE, SIMPLEX_NOISE, SIMPLEX_PLANET_POLAR, SIMPLEX_PLANET_ICOSPHERICAL, LOD_TEST
         }
 		private static final long serialVersionUID = 1L;
 		private static final float DELTA_TRANS=200;
 		private static final float DELTA_ROT=(float)Math.PI/20.0f;
-		private MJ3DView view;
 		private MJ3DCamera camera;
+		private final Map<KeyStroke, AbstractAction> keyHooks = new HashMap<>();
 	
 		public MainWindow() {
 			super("3D World");
@@ -40,15 +49,15 @@ import java.awt.event.KeyEvent;
 			setLocation(new Point((int) (screenSize.width * 0.2),
 					(int) (screenSize.height * 0.1)));
 			setSize(500,500);
-			loadViewerDesign(SampleType.SIMPLEX_PLANET_ICOSPHERICAL);
-		 	addKeyboardShortCuts();
+			MJ3DView view = loadViewerDesign(SampleType.LOD_TEST);
+		 	addKeyboardShortCuts(view);
 		 	this.setVisible(true);
 			view.initialize();
 			this.validate();
 		 	this.repaint();
 		}
 	
-		private void loadViewerDesign(SampleType sampleType) {
+		private MJ3DView loadViewerDesign(SampleType sampleType) {
 			JPanel viewerMainPanel = new JPanel();
 	
 			viewerMainPanel.setLayout(new GridLayout(1, 1));
@@ -79,17 +88,42 @@ import java.awt.event.KeyEvent;
 				case SIMPLEX_PLANET_ICOSPHERICAL:
                     map = getSimplexPlanetMapIcospherical(fog, wireframe, backgroundColor, ambientLight, terrainColorScheme);
                     break;
+                case LOD_TEST:
+                    map = buildLodSampleMap(backgroundColor);
+                    break;
                 default:
                     throw new IllegalStateException("Unknown SampleType "+sampleType);
             }
 			this.camera.setMap(map);
 
 			this.camera.setMaxTriadDistance(visibility);
-			view = new MJ3DView(this, map, camera);
+            MJ3DView view = new MJ3DView(this, map, camera);
 			viewerMainPanel.add(view); // put viewer on main panel
 			this.setContentPane(viewerMainPanel);
 			viewerMainPanel.requestFocusInWindow();
+			return view;
 		}
+
+        private MJ3DMap buildLodSampleMap(Color backgroundColor) {
+            List<MJ3DObject> triads = new ArrayList<>();
+            MJ3DPoint3D pt1 = new MJ3DPoint3D(500, -100, 100);
+            MJ3DPoint3D pt2 = new MJ3DPoint3D(500, 100, 100);
+            MJ3DPoint3D pt3 = new MJ3DPoint3D(500, 100, -100);
+            MJ3DPoint3D pt4 = new MJ3DPoint3D(500, -100, -100);
+            MJ3DPoint3D[] points1 = {pt1, pt2, pt3};
+            MJ3DPoint3D[] points2 = {pt1, pt3, pt4};
+
+            MJ3DTriad t1 = new MJ3DTriad(points1, Color.RED);
+            MJ3DTriad t2 = new MJ3DTriad(points2, Color.RED);
+            MJ3DMap map = MJ3DMapBuilder.newBuilder()
+                    .setWireframe(true)
+                    .setBackgroundColor(backgroundColor)
+                    .addObject(t1)
+                    .addObject(t2)
+                    .build();
+
+            return map;
+        }
 
         private MJ3DMap getDiamondSquareMap(boolean fog, boolean wireframe, Color backgroundColor, float ambientLight, ColorScheme terrainColorScheme) {
             MJ3DMap map;
@@ -142,7 +176,7 @@ import java.awt.event.KeyEvent;
 			new MainWindow();
 		}
 		
-		private void addKeyboardShortCuts() {
+		private void addKeyboardShortCuts(MJ3DView view) {
 			view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "keyRight");
 		 	view.getActionMap().put("keyRight", new YawRightAction());
 		 	view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "keyLeft");
@@ -160,18 +194,24 @@ import java.awt.event.KeyEvent;
 		 	view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD6, 0), "numPad6");
 		 	view.getActionMap().put("numPad6", new RollLeftAction());
 		 	view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "keyUp");
-		 	view.getActionMap().put("keyUp", new upAction());
+		 	view.getActionMap().put("keyUp", new UpAction());
 		 	view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "keyDown");
-		 	view.getActionMap().put("keyDown", new downAction());
+		 	view.getActionMap().put("keyDown", new DownAction());
 		 	view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('a'), "keyStrafeLeft");
-		 	view.getActionMap().put("keyStrafeLeft", new strafeLeftAction());
+		 	view.getActionMap().put("keyStrafeLeft", new StrafeLeftAction());
 		 	view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('s'), "keyStrafeRight");
-		 	view.getActionMap().put("keyStrafeRight", new strafeRightAction());
+		 	view.getActionMap().put("keyStrafeRight", new StrafeRightAction());
 		 	view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('e'), "keyMoveUp");
-		 	view.getActionMap().put("keyMoveUp", new moveUpAction());
+		 	view.getActionMap().put("keyMoveUp", new MoveUpAction());
 		 	view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('d'), "keyMoveDown");
-		 	view.getActionMap().put("keyMoveDown", new moveDownAction());
-		}
+
+            for (Map.Entry<KeyStroke, AbstractAction> hook : keyHooks.entrySet()) {
+                String key = UUID.randomUUID().toString();
+                view.getActionMap().put(key, hook.getValue());
+                view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(hook.getKey(), key);
+
+            }
+        }
 		
 		class PitchUpAction extends AbstractAction 
 		{
@@ -228,7 +268,7 @@ import java.awt.event.KeyEvent;
 			}
 		}	
 	
-		class upAction extends AbstractAction 
+		class UpAction extends AbstractAction
 		{
 			private static final long serialVersionUID = 100;
 		    public void actionPerformed(ActionEvent event) {
@@ -237,7 +277,7 @@ import java.awt.event.KeyEvent;
 		    }
 		}
 		
-		class downAction extends AbstractAction 
+		class DownAction extends AbstractAction
 		{
 			private static final long serialVersionUID = 100;
 		    public void actionPerformed(ActionEvent event) {
@@ -246,7 +286,7 @@ import java.awt.event.KeyEvent;
 		    }
 		}
 		
-		class strafeLeftAction extends AbstractAction 
+		class StrafeLeftAction extends AbstractAction
 		{
 			private static final long serialVersionUID = 100;
 		    public void actionPerformed(ActionEvent event) {
@@ -255,7 +295,7 @@ import java.awt.event.KeyEvent;
 		    }
 		}
 		
-		class strafeRightAction extends AbstractAction 
+		class StrafeRightAction extends AbstractAction
 		{
 			private static final long serialVersionUID = 100;
 		    public void actionPerformed(ActionEvent event) {
@@ -264,7 +304,7 @@ import java.awt.event.KeyEvent;
 		    }
 		}
 		
-		class moveUpAction extends AbstractAction 
+		class MoveUpAction extends AbstractAction
 		{
 			private static final long serialVersionUID = 100;
 			public void actionPerformed(ActionEvent event) {
@@ -273,7 +313,7 @@ import java.awt.event.KeyEvent;
 			}
 		}
 		
-		class moveDownAction extends AbstractAction 
+		class MoveDownAction extends AbstractAction
 		{
 			private static final long serialVersionUID = 100;
 			public void actionPerformed(ActionEvent event) {
