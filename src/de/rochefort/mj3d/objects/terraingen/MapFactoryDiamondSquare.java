@@ -1,4 +1,4 @@
-package de.rochefort.mj3d.samples;
+package de.rochefort.mj3d.objects.terraingen;
 
 import de.rochefort.mj3d.math.MJ3DVector;
 import de.rochefort.mj3d.objects.MJ3DObject;
