@@ -16,6 +16,7 @@ import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
@@ -159,13 +160,13 @@ public class MJ3DSimplexNoisePlanetPolar extends MJ3DTerrain {
 	}
 	
 	@Override
-	public MJ3DTriad[] getTriads() {
-		return visibleTriads;
+	public List<MJ3DTriad> getTriads() {
+		return Arrays.asList(visibleTriads);
 	}
 	
 	@Override
-	public MJ3DPoint3D[] getPoints() {
-		return this.points;
+	public List<MJ3DPoint3D> getPoints() {
+		return Arrays.asList(this.points);
 	}
 
 	@Override

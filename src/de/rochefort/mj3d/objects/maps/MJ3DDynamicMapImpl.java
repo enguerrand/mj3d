@@ -1,10 +1,12 @@
 package de.rochefort.mj3d.objects.maps;
 
 import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
+import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.objects.terrains.MJ3DTerrain;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 import java.awt.Color;
+import java.util.List;
 
 public class MJ3DDynamicMapImpl implements MJ3DMap{
 
@@ -45,23 +47,23 @@ public class MJ3DDynamicMapImpl implements MJ3DMap{
 
 	@Override
 	public int getTriadCount() {
-		return terrain.getTriads().length;
+		return terrain.getTriads().size();
 	}
 
 	@Override
-	public MJ3DPoint3D[] getPoints() {
+	public List<MJ3DPoint3D> getPoints() {
 		return terrain.getPoints();
 	}
 
 	@Override
 	public int[][] getTriadPointIndices() {
-		int[][] triadPointsArray = new int[terrain.getTriads().length][3];  // To store the indices the respective vertices in the pointsArray
+		int[][] triadPointsArray = new int[terrain.getTriads().size()][3];  // To store the indices the respective vertices in the pointsArray
 		// iterate over all triads and add their color to all their respective vertices
 		// as a result each point receives color from its three adjacent triads.
 		// Finally, increment the triad count for each point to be able to average in the next loop.
 		for(int triadIndex=0; triadIndex<triadPointsArray.length; triadIndex++){
 			for(int vertice=0; vertice<3; vertice++){
-				MJ3DPoint3D currentPoint = terrain.getTriads()[triadIndex].getPoints()[vertice];
+				MJ3DPoint3D currentPoint = terrain.getTriads().get(triadIndex).getPoints()[vertice];
 				int pointIndex = currentPoint.getMapIndex();
 				triadPointsArray[triadIndex][vertice]=pointIndex;
 			}
@@ -72,25 +74,28 @@ public class MJ3DDynamicMapImpl implements MJ3DMap{
 	@Override
 	public int[] getPointColors() {
 		int[][] triadPointsArray = getTriadPointIndices();
-		MJ3DPoint3D[] pointsList = terrain.getPoints();
-		int[] triadColorsArray = new int[terrain.getTriads().length];
-		int[] pointsRedArray = new int[pointsList.length];
-		int[] pointsGreenArray = new int[pointsList.length];
-		int[] pointsBlueArray = new int[pointsList.length];
-		int[] pointsTriadCountArray = new int[pointsList.length];
+		List<MJ3DPoint3D> pointsList = terrain.getPoints();
+		final int triadsSize = terrain.getTriads().size();
+		int[] triadColorsArray = new int[triadsSize];
+		final int pointsSize = pointsList.size();
+		int[] pointsRedArray = new int[pointsSize];
+		int[] pointsGreenArray = new int[pointsSize];
+		int[] pointsBlueArray = new int[pointsSize];
+		int[] pointsTriadCountArray = new int[pointsSize];
 
-		int[] pointColorsArray = new int[pointsList.length];
+		int[] pointColorsArray = new int[pointsSize];
 		// iterate over all triads and add their color to all their respective vertices
 		// as a result each point receives color from its three adjacent triads.
 		// Finally, increment the triad count for each point to be able to average in the next loop.
 		for(int triadIndex=0; triadIndex<triadPointsArray.length; triadIndex++){
-			triadColorsArray[triadIndex]=terrain.getTriads()[triadIndex].getColor().getRGB();
+			final MJ3DTriad mj3DTriad = terrain.getTriads().get(triadIndex);
+			triadColorsArray[triadIndex]= mj3DTriad.getColor().getRGB();
 			for(int vertice=0; vertice<3; vertice++){
-				MJ3DPoint3D currentPoint = terrain.getTriads()[triadIndex].getPoints()[vertice];
+				MJ3DPoint3D currentPoint = mj3DTriad.getPoints()[vertice];
 				int pointIndex = currentPoint.getMapIndex();
-				pointsRedArray[pointIndex]+=terrain.getTriads()[triadIndex].getColor().getRed();
-				pointsGreenArray[pointIndex]+=terrain.getTriads()[triadIndex].getColor().getGreen();
-				pointsBlueArray[pointIndex]+=terrain.getTriads()[triadIndex].getColor().getBlue();
+				pointsRedArray[pointIndex]+=mj3DTriad.getColor().getRed();
+				pointsGreenArray[pointIndex]+=mj3DTriad.getColor().getGreen();
+				pointsBlueArray[pointIndex]+=mj3DTriad.getColor().getBlue();
 				pointsTriadCountArray[pointIndex]++;
 			}
 		}
@@ -103,11 +108,12 @@ public class MJ3DDynamicMapImpl implements MJ3DMap{
 			pointColorsArray[i]=(new Color(red, green, blue)).getRGB();
 		}
 		
-		for(int i=0; i<terrain.getTriads().length; i++){
-			
-			triadColorsArray[i]=terrain.getTriads()[i].getColor().getRGB();
+		for(int i = 0; i< triadsSize; i++){
+
+			final MJ3DTriad mj3DTriad = terrain.getTriads().get(i);
+			triadColorsArray[i]= mj3DTriad.getColor().getRGB();
 			for(int p=0; p<3; p++)
-				triadPointsArray[i][p]=terrain.getTriads()[i].getPoints()[p].getMapIndex();
+				triadPointsArray[i][p]=mj3DTriad.getPoints()[p].getMapIndex();
 		}
 		return pointColorsArray;
 	}

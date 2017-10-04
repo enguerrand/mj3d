@@ -127,8 +127,8 @@ class MJ3DStaticMapImpl implements MJ3DMap {
 	}
 
 	@Override
-	public MJ3DPoint3D[] getPoints() {
-		return pointsArray;
+	public List<MJ3DPoint3D> getPoints() {
+		return Arrays.asList(pointsArray);
 	}
 
 	@Override

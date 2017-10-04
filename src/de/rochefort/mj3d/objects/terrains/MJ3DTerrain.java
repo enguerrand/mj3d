@@ -5,6 +5,8 @@ import de.rochefort.mj3d.objects.primitives.MJ3DPoint3D;
 import de.rochefort.mj3d.objects.primitives.MJ3DTriad;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
+import java.util.List;
+
 public abstract class MJ3DTerrain implements MJ3DObjectCompound {
 
 	public MJ3DTerrain() {
@@ -26,8 +28,8 @@ public abstract class MJ3DTerrain implements MJ3DObjectCompound {
 	}
 
 	@Override
-	public abstract MJ3DTriad[] getTriads();
-	
+	public abstract List<MJ3DTriad> getTriads();
+
 	public abstract int getPointsCount();
 
 	public abstract void replace(MJ3DPoint3D pointToReplace, MJ3DPoint3D replacement);

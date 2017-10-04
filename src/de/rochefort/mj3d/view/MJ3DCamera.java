@@ -6,6 +6,8 @@ import de.rochefort.mj3d.math.Quaternion;
 import de.rochefort.mj3d.objects.maps.MJ3DMap;
 import de.rochefort.mj3d.util.PerformanceTimer;
 
+import java.util.List;
+
 public class MJ3DCamera implements MJ3DViewingPosition {
 	private MJ3DMap map;
 	private MJ3DVector position = new MJ3DVector();
@@ -63,7 +65,7 @@ public class MJ3DCamera implements MJ3DViewingPosition {
         //TODO focal distance?!? 0.2m is probably not too bad
 		map.update(this, 0.2f);
 		PerformanceTimer.stopInterimTime("exit update method");
-		MJ3DVector[] points = map.getPoints();
+		List<? extends MJ3DVector> points = map.getPoints();
 		int[][] triadPoints = map.getTriadPointIndices();
 		int[] pointColors = map.getPointColors();
 		clearCacheArrays();
@@ -176,18 +178,18 @@ public class MJ3DCamera implements MJ3DViewingPosition {
 //		PerformanceTimer.stopAndPrintReport();
 //	}
 //		
-	private void recalculatePointDistances(MJ3DVector[] points) {
+	private void recalculatePointDistances(List<? extends MJ3DVector> points) {
 		for(int i=0; i<pointDistances.length; i++){
-			pointDistances[i]=points[i].add(position).getLength();
+			pointDistances[i]=points.get(i).add(position).getLength();
 		}
 	}
 	
-	private void recalculatePointTransformations(MJ3DVector[] points, MJ3DMatrix rotationMatrix) {
+	private void recalculatePointTransformations(List<? extends MJ3DVector> points, MJ3DMatrix rotationMatrix) {
 		for(int i=0; i<pointDistances.length; i++){
 			if(pointDistances[i]>maxTriadDistance){
 				continue;
 			}
-			MJ3DVector pntRotated = points[i].add(position.getX(), position.getY(), position.getZ()).rotate(rotationMatrix);
+			MJ3DVector pntRotated = points.get(i).add(position.getX(), position.getY(), position.getZ()).rotate(rotationMatrix);
 			cachedPointTransformationsX[i] = pntRotated.getX();
 			cachedPointTransformationsY[i] = pntRotated.getY();
 			cachedPointTransformationsZ[i] = pntRotated.getZ();

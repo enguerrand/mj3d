@@ -10,6 +10,8 @@ import de.rochefort.mj3d.objects.terrains.colorschemes.ColorScheme;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 import java.awt.Color;
+import java.util.Arrays;
+import java.util.List;
 
 public class MJ3DSimplexNoisePlanetIcospherical extends MJ3DTerrain {
     private final long seed;
@@ -53,11 +55,11 @@ public class MJ3DSimplexNoisePlanetIcospherical extends MJ3DTerrain {
 
 	@Override
 	public void update(MJ3DViewingPosition viewingPosition, float cameraFocalDistance){
-        int[] pointRecursionDepths = new int[getPoints().length];
+        int[] pointRecursionDepths = new int[getPoints().size()];
         float maxVisiblePointDistance = this.planetBaseShape.getDistanceToHorizon(viewingPosition);
 
         for(int i=0; i<pointRecursionDepths.length; i++) {
-            final MJ3DPoint3D mj3DPoint3D = getPoints()[i];
+            final MJ3DPoint3D mj3DPoint3D = getPoints().get(i);
             float distance = mj3DPoint3D.substract(viewingPosition.getPositionVector()).getLength();
             if(distance > maxVisiblePointDistance) {
                 pointRecursionDepths[i] = MJ3DIcospericalMesh.RECURSION_DEPTH_INVISIBLE;
@@ -80,13 +82,13 @@ public class MJ3DSimplexNoisePlanetIcospherical extends MJ3DTerrain {
     }
 
 	@Override
-	public MJ3DTriad[] getTriads() {
-		return visibleTriads;
+	public List<MJ3DTriad> getTriads() {
+		return Arrays.asList(visibleTriads);
 	}
 	
 	@Override
-	public MJ3DPoint3D[] getPoints() {
-		return this.planetBaseShape.getPoints();
+	public List<MJ3DPoint3D> getPoints() {
+		return Arrays.asList(this.planetBaseShape.getPoints());
 	}
 
 	@Override

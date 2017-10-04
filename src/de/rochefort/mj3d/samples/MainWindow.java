@@ -49,7 +49,7 @@ public class MainWindow extends JFrame {
 			setLocation(new Point((int) (screenSize.width * 0.2),
 					(int) (screenSize.height * 0.1)));
 			setSize(500,500);
-			MJ3DView view = loadViewerDesign(SampleType.LOD_TEST);
+			MJ3DView view = loadViewerDesign(SampleType.SIMPLEX_NOISE);
 		 	addKeyboardShortCuts(view);
 		 	this.setVisible(true);
 			view.initialize();
@@ -61,8 +61,8 @@ public class MainWindow extends JFrame {
 			JPanel viewerMainPanel = new JPanel();
 	
 			viewerMainPanel.setLayout(new GridLayout(1, 1));
-			boolean fog = false;
-			boolean wireframe = true;
+			boolean fog = true;
+			boolean wireframe = false;
 			Color backgroundColor = new Color(170,185,215);
 			float ambientLight = 0.2f;
 			float visibility = 50_000;

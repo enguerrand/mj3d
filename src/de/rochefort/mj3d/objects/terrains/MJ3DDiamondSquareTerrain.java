@@ -12,6 +12,7 @@ import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -298,8 +299,8 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	}
 
 	@Override
-	public MJ3DTriad[] getTriads() {
-		return visibleTriads;
+	public List<MJ3DTriad> getTriads() {
+		return Arrays.asList(visibleTriads);
 	}
 	
 	public void translate(MJ3DVector translationVector){
@@ -438,8 +439,8 @@ public class MJ3DDiamondSquareTerrain extends MJ3DTerrain implements Mergeable {
 	}
 
 	@Override
-	public MJ3DPoint3D[] getPoints() {
-		return this.points;
+	public List<MJ3DPoint3D> getPoints() {
+		return Arrays.asList(this.points);
 	}
 
 	@Override

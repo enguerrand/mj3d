@@ -11,6 +11,8 @@ import de.rochefort.mj3d.view.ColorBlender;
 import de.rochefort.mj3d.view.MJ3DViewingPosition;
 
 import java.awt.Color;
+import java.util.Arrays;
+import java.util.List;
 
 public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	private final long seed;
@@ -212,13 +214,13 @@ public class MJ3DInfiniteSimplexNoiseTerrain extends MJ3DTerrain {
 	}
 	
 	@Override
-	public MJ3DTriad[] getTriads() {
-		return visibleTriads;
+	public List<MJ3DTriad> getTriads() {
+		return Arrays.asList(visibleTriads);
 	}
 	
 	@Override
-	public MJ3DPoint3D[] getPoints() {
-		return this.points;
+	public List<MJ3DPoint3D> getPoints() {
+		return Arrays.asList(this.points);
 	}
 
 	@Override
