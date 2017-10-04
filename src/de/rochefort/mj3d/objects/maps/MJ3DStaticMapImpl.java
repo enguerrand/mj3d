@@ -17,7 +17,7 @@ class MJ3DStaticMapImpl implements MJ3DMap {
 	private final int bg;
 	private final boolean foggy;
 	private final boolean wireframe;
-	private final MJ3DPoint3D[] pointsArray;
+	private final List<MJ3DPoint3D> points;
 	private final int[][] triadPointsArray;
 	private final int[] triadColorsArray;
 	private final int[] pointColorsArray;
@@ -26,7 +26,7 @@ class MJ3DStaticMapImpl implements MJ3DMap {
 		this.bg = backgroundColor;
 		this.foggy = foggy;
 		this.wireframe = wireframe;
-		List<MJ3DPoint3D> pointsList = new ArrayList<MJ3DPoint3D>();
+		this.points = new ArrayList<>();
 		List<MJ3DTriad> triadList = new ArrayList<MJ3DTriad>();
 		LinkedList<MJ3DObjectCompound> objectsCompounds = new LinkedList<MJ3DObjectCompound>();
 		for(MJ3DObject obj : mj3dObjects){
@@ -37,28 +37,27 @@ class MJ3DStaticMapImpl implements MJ3DMap {
 					triadList.add(t);
 				}
 				for(MJ3DPoint3D p : comp.getPoints()){
-					pointsList.add(p);
+					points.add(p);
 				}
 			} else if (obj instanceof MJ3DTriad){
 				MJ3DTriad triad = (MJ3DTriad)obj;
 				triadList.add(triad);
-				pointsList.addAll(Arrays.asList(triad.getPoints()));
+				points.addAll(Arrays.asList(triad.getPoints()));
 			}
 		}
-		
 
-		pointsArray = new MJ3DPoint3D[pointsList.size()];
-		pointColorsArray = new int[pointsList.size()];
+
+        final int pointsCount = points.size();
+        pointColorsArray = new int[pointsCount];
 		triadPointsArray = new int[triadList.size()][3];  // To store the indices the respective vertices in the pointsArray
 		triadColorsArray = new int[triadList.size()];
-		int[] pointsRedArray = new int[pointsList.size()];
-		int[] pointsGreenArray = new int[pointsList.size()];
-		int[] pointsBlueArray = new int[pointsList.size()];
-		int[] pointsTriadCountArray = new int[pointsList.size()];
-		// Fill the pointsarray
-		for(int i=0; i<pointsArray.length; i++){
-			pointsList.get(i).setMapIndex(i);
-			pointsArray[i]=pointsList.get(i);
+		int[] pointsRedArray = new int[pointsCount];
+		int[] pointsGreenArray = new int[pointsCount];
+		int[] pointsBlueArray = new int[pointsCount];
+		int[] pointsTriadCountArray = new int[pointsCount];
+		// Set the map indices
+		for(int i=0; i<pointsCount; i++){
+			points.get(i).setMapIndex(i);
 		}
 		
 		// iterate over all triads and add their color to all their respective vertices
@@ -118,7 +117,7 @@ class MJ3DStaticMapImpl implements MJ3DMap {
 
 	@Override
 	public int getPointsCount() {
-		return pointsArray.length;
+		return points.size();
 	}
 
 	@Override
@@ -128,7 +127,7 @@ class MJ3DStaticMapImpl implements MJ3DMap {
 
 	@Override
 	public List<MJ3DPoint3D> getPoints() {
-		return Arrays.asList(pointsArray);
+		return points;
 	}
 
 	@Override
